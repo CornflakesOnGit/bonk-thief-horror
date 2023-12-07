@@ -1,83 +1,12 @@
 pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
+
+-- Init function {#fff,2}
 function _init()
-    pflp = false
-    bonk_spd = 1
-    bonk_x = 20
-    bonk_y = 20
-    e_x = 40
-    e_y = 40
-    anim_counter = 0
 end
 
-
---This table contains the sprite info for bonk
-bonk = {
-    sprites = {0, 1, 2},
-    currentFrame = 0
-}
-
---This animation functions looks to see if the bonk.currentFrame value is more than the number of sprites for Bonk. If so, it resets the current frame to zero.
-function updateAnimation()
-    bonk.currentFrame = bonk.currentFrame + 1
-    if bonk.currentFrame > #bonk.sprites then
-        bonk.currentFrame = 0
-    end
-end
-
-function _update()
-
-    p_moved = false
-
-    if btn(0) then 
-        bonk_x = bonk_x - bonk_spd
-        pflp = true
-        p_moved = true
-        anim_counter = anim_counter + 1
-    end
-
-    if btn(1) then
-        bonk_x = bonk_x + bonk_spd
-        pflp = false
-        p_moved = true
-        anim_counter = anim_counter + 1
-    end
-
-    if btn(2) then
-        bonk_y = bonk_y - bonk_spd
-        p_moved = true
-        anim_counter = anim_counter + 1
-    end
-
-    if btn(3) then
-        bonk_y = bonk_y + bonk_spd
-        p_moved = true
-        anim_counter = anim_counter + 1
-    end
-
-    if p_moved then
-        if anim_counter >= 5 then
-            updateAnimation()
-            anim_counter = 0
-        end
-    end
-
-    if bonk_x < -4 then bonk_x = 124
-    elseif bonk_x > 124 then bonk_x = -4
-    elseif bonk_y < -4 then bonk_y = 124
-    elseif bonk_y > 124 then bonk_y = -4
-    end
-end
-
-function drawBonk()
-    if pflp then
-        spr(bonk.sprites[bonk.currentFrame], bonk_x, bonk_y, 1, 1, true, false)
-    else
-        spr(bonk.sprites[bonk.currentFrame], bonk_x, bonk_y)
-    end
-end
-
+-- Draw function {#c0c}
 function _draw()
     cls()
     drawBonk()
@@ -85,10 +14,108 @@ end
 
 
 
+
+
 -->8
--- page 1 for animation stuff
+-- Code for Bonk
+--Bonk data table  {#0f0}
+bonk = {
+    position = {x = 20, y = 20}, -- Initial position of the character
+    sprites = {0, 1, 2},
+    currentFrame = 0,
+    anim_counter = 0,
+    spd = 1,
+    flip = false,
+}
+
+--This animation functions looks to see if the bonk.currentFrame value is more than the number of sprites for Bonk. If so, it resets the current frame to zero.
+-- Bonk animation function  {#c81},7}
+function updateAnimation()
+        bonk.currentFrame = bonk.currentFrame + 1
+        if bonk.currentFrame > #bonk.sprites then
+            bonk.currentFrame = 0
+        end
+end
+
+-- This instance of the update function handles animation updates & respawning from other side
+-- movement and animation updates {#c81}}
+function _update()
+    p_moved = false
+    if btn(0) then 
+        bonk.position.x = bonk.position.x - bonk.spd
+        bonk.flip = true
+        p_moved = true
+        bonk.anim_counter = bonk.anim_counter + 1
+    end
+    if btn(1) then
+        bonk.position.x = bonk.position.x + bonk.spd
+        bonk.flip = false
+        p_moved = true
+        bonk.anim_counter = bonk.anim_counter + 1
+    end
+    if btn(2) then
+        bonk.position.y = bonk.position.y - bonk.spd
+        p_moved = true
+        bonk.anim_counter = bonk.anim_counter + 1
+    end
+    if btn(3) then
+        bonk.position.y = bonk.position.y + bonk.spd
+        p_moved = true
+        bonk.anim_counter = bonk.anim_counter + 1
+    end
+    if p_moved then
+        if bonk.anim_counter >= 5 then
+            updateAnimation()
+            bonk.anim_counter = 0
+        end
+    end
+
+-- respawning from other side {#c81}}
+    if bonk.position.x < -4 then bonk.position.x = 124
+    elseif bonk.position.x > 124 then bonk.position.x = -4
+    elseif bonk.position.y < -4 then bonk.position.y = 124
+    elseif bonk.position.y > 124 then bonk.position.y = -4
+    end
+end
+
+-- Function for drawing bonk {#c0c}
+function drawBonk()
+    if bonk.flip then
+        spr(bonk.sprites[bonk.currentFrame], bonk.position.x, bonk.position.y, 1, 1, true, false)
+    else
+        spr(bonk.sprites[bonk.currentFrame], bonk.position.x, bonk.position.y)
+    end
+end
+
+
+
+
+
+
 -->8
--- page 2 for enemy stuff
+-- Code for thief
+
+-- Thief variables table {#0f0}
+thief = {
+    position = {x = 40, y = 20}, -- Initial position of the character
+    largerSprite = {
+        {5},
+        {21},
+    },
+    currentFrame = 0,
+    spd = 1
+}
+
+-- Function for drawing thief {#c0c}
+function drawthief()
+    if thief.flip then
+        spr(thief.sprites[thief.currentFrame], thief.position.x, thief.position.y, 1, 1, true, false)
+    else
+        spr(thief.sprites[thief.currentFrame], thief.position.x, thief.position.y)
+    end
+end
+
+
 __gfx__
 00090090000000900009000000900090000000006666666666666666000000000000000000000000000000000000000000000000000000000000000000000000
 00099990000999900009999009599959000000006555555665555556000000000000000000000000000000000000000000000000000000000000000000000000
@@ -140,4 +167,3 @@ __music__
 04 05464744
 00 06424344
 00 07424344
-
