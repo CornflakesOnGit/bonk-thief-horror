@@ -29,7 +29,7 @@ bonk = {
 }
 
 --This animation functions looks to see if the bonk.currentFrame value is more than the number of sprites for Bonk. If so, it resets the current frame to zero.
--- Bonk animation function  {#c81},7}
+-- Bonk change frame function  {#c81},7}
 function updateAnimation()
         bonk.currentFrame = bonk.currentFrame + 1
         if bonk.currentFrame > #bonk.sprites then
