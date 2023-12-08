@@ -2,15 +2,16 @@ pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
 
--- Init function {#fff,2}
+-- Init function {#f00,2}
 function _init()
+    elapsedTime = 0
 end
 
 
 -->8
 -- bonk data
 
---Bonk data table  {#0f0}
+--Bonk data table {#c81}
 bonk = {
     position = {x = 20, y = 20}, -- Initial position of the character
     sprites = {0, 1, 2},
@@ -47,7 +48,7 @@ end
 -- Thief variables table {#c0c}
 thief = {
     position = {x = 40, y = 20}, -- Initial position of the character
-    largerSprite = {
+    thiefSprite = {
         {5},
         {21},
     },
@@ -67,24 +68,21 @@ end
 -->8
 --bone data
 
-
--- Initialize variables for bones {#fff}
+-- Initialize variables for bone spawning {#fff}
 bones = {}
 maxBones = 10
-spawnInterval = 120  -- Adjust this value for spawn interval
+spawnInterval = 100  --this number refers to frames that have happened (adjust as needed)
 
--- bone logic {#fff}
+-- bone spawn logic {#fff}
 function spawnBone()
-    for i = 1, maxBones do
-        if not bones[i] or not bones[i].active then
-            bones[i] = {
-                x = rnd(120),
-                y = rnd(120),
-                active = true,
-                spawnTimer = 0,
-            }
-            break  -- Exit the loop after spawning a bone
-        end
+    -- Check if there are fewer than the maximum allowed bones
+    if #bones < maxBones then
+        -- Spawn a new bone at a random location and set it to active = true
+        bones[#bones + 1] = {
+            x = rnd(120),
+            y = rnd(120),
+            active = true,
+        }
     end
 end
 
@@ -93,7 +91,7 @@ end
 -->8
 --code
 
--- update function
+-- update function {#f00,1}
 function _update()
 
 -- bonk animation updates & respawning from other side
@@ -135,46 +133,23 @@ function _update()
     elseif bonk.position.y > 124 then bonk.position.y = -4
     end
 
--- Increase spawnTimer for active bones {#fff}
-    for i = 1, #bones do
-        if bones[i].active then
-            bones[i].spawnTimer += 1
-            if bones[i].spawnTimer >= spawnInterval then
-                bones[i].spawnTimer = 0
-                bones[i].active = false -- Reset the active state after the interval
-            end
-        end
-    end
+-- Increase overall timer {#fff}
+elapsedTime += 1  -- Increment elapsed time by 1 frame
 
--- Check the number of active bones {#fff}
-    local activeBones = 0
-    for i = 1, #bones do
-        if bones[i].active then
-            activeBones += 1
-        end
-    end
-
--- Spawn a new bone if there are fewer than the maximum allowed and not currently spawning  {#fff}
-    if activeBones < maxBones then
-        local spawning = false
-        for i = 1, #bones do
-            if bones[i].active and bones[i].spawnTimer > 0 then
-                spawning = true
-                break
-            end
-        end
-        if not spawning then
-            spawnBone()
-        end
-    end
+-- Check if it's time to spawn a new bone {#fff}
+if elapsedTime >= spawnInterval then
+    elapsedTime = 0  -- Reset elapsed time
+    spawnBone()
+end
 
     -- Handle other game logic, interactions, etc. HERE
+
 end
 
 -->8
 --draw
 
--- Draw function {#0f0}
+-- Draw function {#f00,1}
 function _draw()
     -- Draw Bonk
     cls(12)
@@ -186,8 +161,6 @@ function _draw()
             spr(4, bones[i].x, bones[i].y)
         end
     end
-
-
 
 end
 
