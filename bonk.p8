@@ -2,17 +2,17 @@ pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
 
--- Init function {#f00}
+-- Init function {#f00,1}
 function _init()
     elapsedTime = 0
-    end
 end
 
--- Helper functions {#0f0}
 
+-- Helper functions {#0f0}
 -- Function to calculate distance between two points
-function distance(x1, y1, x2, y2)
-    return sqrt((x2 - x1)^2 + (y2 - y1)^2)
+function distanceSquared(x1, y1, x2, y2)
+    return (x2 - x1)^2 + (y2 - y1)^2
+end
 
 
 -->8
@@ -60,7 +60,7 @@ thief = {
         {6, 22} -- Second animation frame
     },
     currentFrame = 1,
-    spd = 0.7
+    speed = 0.7
 }
 
 -- Function for drawing thief {#c0c}
@@ -73,6 +73,8 @@ function drawThief()
         spr(thief.sprites[thief.currentFrame][2], thief.position.x, thief.position.y + 8)
     end
 end
+
+
 
 -->8
 --bone data
@@ -151,25 +153,65 @@ if elapsedTime >= spawnInterval then
     spawnBone()
 end
 
+
+-- Find the nearest bone {#c0c}
+function findNearestBone()
+    local nearestBone = nil
+    local minDistSq = 999999 -- Initialize a large value for comparison
+    for i = 1, #bones do
+        local bone = bones[i]
+        if bone.active then
+            local distSq = distanceSquared(thief.position.x, thief.position.y, bone.x, bone.y)
+            if distSq < minDistSq then
+                minDistSq = distSq
+                nearestBone = bone
+            end
+        end
+    end
+    return nearestBone
+end
+
+-- Move the thief towards the nearest bone {#c0c}
+    function moveThiefTowardsNearestBone(nearestBone)
+        if nearestBone then
+            local angle = atan2(nearestBone.y - thief.position.y, nearestBone.x - thief.position.x)
+            thief.position.x = thief.position.x + cos(angle) * thief.speed
+            thief.position.y = thief.position.y + sin(angle) * thief.speed
+        end
+    end
+
+
+-- Thief logic {#c0c}
+    local nearestBone = findNearestBone()
+    moveThiefTowardsNearestBone(nearestBone)
+
     -- Handle other game logic, interactions, etc. HERE
 
+
+-- end of _update function {f00,1}
 end
 
 -->8
 --draw
 
--- Draw function {#f00,1}
+-- Draw function {#f00}
 function _draw()
-    -- Draw Bonk
+    
     cls(12)
+
+-- Draw Bonk {#c81}
     drawBonk()
+
+-- Draw Thief {#c0c}
     drawThief()
+
     -- Draw Bones {#fff}
     for i = 1, #bones do
         if bones[i] and bones[i].active then
             spr(4, bones[i].x, bones[i].y)
         end
     end
+
 
 end
 
