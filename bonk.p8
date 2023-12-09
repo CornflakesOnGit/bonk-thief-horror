@@ -2,10 +2,17 @@ pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
 
--- Init function {#f00,2}
+-- Init function {#f00}
 function _init()
     elapsedTime = 0
+    end
 end
+
+-- Helper functions {#0f0}
+
+-- Function to calculate distance between two points
+function distance(x1, y1, x2, y2)
+    return sqrt((x2 - x1)^2 + (y2 - y1)^2)
 
 
 -->8
@@ -48,20 +55,22 @@ end
 -- Thief variables table {#c0c}
 thief = {
     position = {x = 40, y = 20}, -- Initial position of the character
-    thiefSprite = {
-        {5},
-        {21},
+    sprites = {
+        {5, 21}, -- First animation frame
+        {6, 22} -- Second animation frame
     },
-    currentFrame = 0,
-    spd = 1
+    currentFrame = 1,
+    spd = 0.7
 }
 
 -- Function for drawing thief {#c0c}
-function drawthief()
+function drawThief()
     if thief.flip then
-        spr(thief.sprites[thief.currentFrame], thief.position.x, thief.position.y, 1, 1, true, false)
+        spr(thief.sprites[thief.currentFrame][1], thief.position.x, thief.position.y, 1, 1, true, false)
+        spr(thief.sprites[thief.currentFrame][2], thief.position.x, thief.position.y + 8, 1, 1, true, false)
     else
-        spr(thief.sprites[thief.currentFrame], thief.position.x, thief.position.y)
+        spr(thief.sprites[thief.currentFrame][1], thief.position.x, thief.position.y)
+        spr(thief.sprites[thief.currentFrame][2], thief.position.x, thief.position.y + 8)
     end
 end
 
@@ -154,7 +163,7 @@ function _draw()
     -- Draw Bonk
     cls(12)
     drawBonk()
-
+    drawThief()
     -- Draw Bones {#fff}
     for i = 1, #bones do
         if bones[i] and bones[i].active then
