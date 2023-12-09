@@ -59,9 +59,27 @@ thief = {
         {5, 21}, -- First animation frame
         {6, 22} -- Second animation frame
     },
+-- Random initial direction (-1, 0, 1)
+    direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}, 
     currentFrame = 1,
-    speed = 0.7
+    spd = 1
 }
+
+--Thief movement logic {#c0c}
+-- Loop to ensure the thief doesn't move straight right, up, or down
+while thief.direction.x == 1 and thief.direction.y == 0
+    or thief.direction.y == 1 and thief.direction.x == 0
+    or thief.direction.y == -1 and thief.direction.x == 0 do
+    thief.direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}
+end
+
+--Prevent standstill {#c0c}
+-- Check if both direction components are zero, and if so, set a default direction
+    if thief.direction.x == 0 and thief.direction.y == 0 then
+        thief.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
+    end
+
+
 
 -- Function for drawing thief {#c0c}
 function drawThief()
@@ -73,6 +91,7 @@ function drawThief()
         spr(thief.sprites[thief.currentFrame][2], thief.position.x, thief.position.y + 8)
     end
 end
+
 
 
 
@@ -153,37 +172,18 @@ if elapsedTime >= spawnInterval then
     spawnBone()
 end
 
-
--- Find the nearest bone {#c0c}
-function findNearestBone()
-    local nearestBone = nil
-    local minDistSq = 999999 -- Initialize a large value for comparison
-    for i = 1, #bones do
-        local bone = bones[i]
-        if bone.active then
-            local distSq = distanceSquared(thief.position.x, thief.position.y, bone.x, bone.y)
-            if distSq < minDistSq then
-                minDistSq = distSq
-                nearestBone = bone
-            end
-        end
+-- Move the thief randomly {#c0c}
+    -- Move thief
+    thief.position.x += thief.direction.x * thief.spd
+    thief.position.y += thief.direction.y * thief.spd
+-- Bounce off the walls
+    if thief.position.x <= 0 or thief.position.x >= 120 then
+        thief.direction.x *= -1 -- Reverse horizontal direction
     end
-    return nearestBone
-end
-
--- Move the thief towards the nearest bone {#c0c}
-    function moveThiefTowardsNearestBone(nearestBone)
-        if nearestBone then
-            local angle = atan2(nearestBone.y - thief.position.y, nearestBone.x - thief.position.x)
-            thief.position.x = thief.position.x + cos(angle) * thief.speed
-            thief.position.y = thief.position.y + sin(angle) * thief.speed
-        end
+    if thief.position.y <= 0 or thief.position.y >= 112 then
+        thief.direction.y *= -1 -- Reverse vertical direction
     end
 
-
--- Thief logic {#c0c}
-    local nearestBone = findNearestBone()
-    moveThiefTowardsNearestBone(nearestBone)
 
     -- Handle other game logic, interactions, etc. HERE
 
@@ -196,7 +196,7 @@ end
 
 -- Draw function {#f00}
 function _draw()
-    
+
     cls(12)
 
 -- Draw Bonk {#c81}
