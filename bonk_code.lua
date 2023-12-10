@@ -18,6 +18,8 @@ end
 bonk = {
     position = {x = 20, y = 20}, -- Initial position of the character
     sprites = {0, 1, 2},
+    width = 8,
+    height = 8,
     currentFrame = 0,
     anim_counter = 0,
     spd = 1,
@@ -55,6 +57,8 @@ thief = {
         {5, 21}, -- First animation frame
         {6, 22} -- Second animation frame
     },
+    width = 8,
+    height = 16,
 -- Random initial direction (-1, 0, 1)
     direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}, 
     currentFrame = 1,
@@ -107,8 +111,14 @@ function spawnBone()
         bones[#bones + 1] = {
             x = rnd(120),
             y = rnd(120),
+            width = 8,
+            height = 4,
             active = true,
-            collected = false
+            collected = false,
+            sprites = {36, 52},
+            currentFrame = 1,
+            anim_counter = 0,
+            anim_speed = 20, --every 20 frames the animation updates to next frame
         }
     end
 end
@@ -155,19 +165,31 @@ function _update()
 
 -- respawning from other side {#c81}
     if bonk.position.x < -4 then bonk.position.x = 124
-    elseif bonk.position.x > 124 then bonk.position.x = -4
-    elseif bonk.position.y < -4 then bonk.position.y = 124
-    elseif bonk.position.y > 124 then bonk.position.y = -4
+        elseif bonk.position.x > 124 then bonk.position.x = -4
+        elseif bonk.position.y < -4 then bonk.position.y = 124
+        elseif bonk.position.y > 124 then bonk.position.y = -4
     end
 
 -- Increase overall timer {#fff}
-elapsedTime += 1  -- Increment elapsed time by 1 frame
+    elapsedTime += 1  -- Increment elapsed time by 1 frame
 
 -- Check if it's time to spawn a new bone {#fff}
-if elapsedTime >= spawnInterval then
-    elapsedTime = 0  -- Reset elapsed time
-    spawnBone()
-end
+    if elapsedTime >= spawnInterval then
+        elapsedTime = 0
+        spawnBone()
+    end
+
+-- Update bone animation {#fff}
+    for i = 1, #bones do
+        if bones[i] and bones[i].active then
+            bones[i].anim_counter += 1
+            if bones[i].anim_counter % bones[i].anim_speed == 0 then
+                bones[i].currentFrame = 3 - bones[i].currentFrame -- Toggle between 1 and 2 frames
+            end
+        end
+    end
+
+
 
 -- Move the thief randomly {#c0c}
     -- Move thief
@@ -182,7 +204,7 @@ end
     end
 
 
-    -- Handle other game logic, interactions, etc. HERE
+-- Handle other game logic, interactions, etc. HERE
 
 
 -- end of _update function {f00,1}
@@ -193,7 +215,6 @@ end
 
 -- Draw function {#f00}
 function _draw()
-
     cls(12)
 
 -- Draw Bonk {#c81}
@@ -202,12 +223,11 @@ function _draw()
 -- Draw Thief {#c0c}
     drawThief()
 
-    -- Draw Bones {#fff}
+-- Draw Bones with animation frames {#fff}
     for i = 1, #bones do
         if bones[i] and bones[i].active then
-            spr(4, bones[i].x, bones[i].y)
+            spr(bones[i].sprites[bones[i].currentFrame], bones[i].x, bones[i].y)
         end
     end
-
 
 end
