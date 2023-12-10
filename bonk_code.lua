@@ -60,16 +60,14 @@ thief = {
     width = 8,
     height = 16,
 -- Random initial direction (-1, 0, 1)
-    direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}, 
+    direction = {x = 0, y = 0},
     currentFrame = 1,
     spd = 1
 }
 
 --Thief movement logic {#c0c}
 -- Loop to ensure the thief doesn't move straight right, up, or down
-while thief.direction.x == 1 and thief.direction.y == 0
-    or thief.direction.y == 1 and thief.direction.x == 0
-    or thief.direction.y == -1 and thief.direction.x == 0 do
+while thief.direction.x == 0 or thief.direction.y == 0 do
     thief.direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}
 end
 
@@ -188,7 +186,6 @@ function _update()
             end
         end
     end
-
 
 
 -- Move the thief randomly {#c0c}
