@@ -11,6 +11,11 @@ end
 
 -- Helper functions {#f00}
 
+--Print help text on screen
+    function timer()
+        print(time(),50,10,7)
+    end
+
 -- Calculate distance between two points
     function distanceSquared(x1, y1, x2, y2)
         return (x2 - x1)^2 + (y2 - y1)^2
@@ -255,6 +260,8 @@ function _draw()
 -- Screen background color
     cls(0)
 
+--timer on screen
+    timer()
 
 -- Draw Bones with animation frames {#fff}
 for i = 1, #bones do
