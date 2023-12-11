@@ -4,11 +4,19 @@ function _init()
 end
 
 
--- Helper functions {#0f0}
--- Function to calculate distance between two points
-function distanceSquared(x1, y1, x2, y2)
-    return (x2 - x1)^2 + (y2 - y1)^2
+-- Helper functions {#f00}
+-- Calculate distance between two points
+    function distanceSquared(x1, y1, x2, y2)
+        return (x2 - x1)^2 + (y2 - y1)^2
+    end
+-- Checking for collision
+function collides(obj1, obj2)
+    return obj1.x < obj2.x + obj2.width and
+           obj1.x + obj1.width > obj2.x and
+           obj1.y < obj2.y + obj2.height and
+           obj1.y + obj1.height > obj2.y
 end
+
 
 
 -->8
@@ -203,8 +211,6 @@ function _update()
 
 -- Handle other game logic, interactions, etc. HERE
 
-
--- end of _update function {f00,1}
 end
 
 -->8
@@ -212,7 +218,23 @@ end
 
 -- Draw function {#f00}
 function _draw()
-    cls(12)
+
+-- here's another color {#0f0}
+
+-- Screen background color
+    cls(0)
+
+
+
+
+-- Draw Bones with animation frames {#fff}
+for i = 1, #bones do
+    if bones[i] and bones[i].active then
+        spr(bones[i].sprites[bones[i].currentFrame], bones[i].x, bones[i].y)
+    end
+end
+
+
 
 -- Draw Bonk {#c81}
     drawBonk()
@@ -220,11 +242,5 @@ function _draw()
 -- Draw Thief {#c0c}
     drawThief()
 
--- Draw Bones with animation frames {#fff}
-    for i = 1, #bones do
-        if bones[i] and bones[i].active then
-            spr(bones[i].sprites[bones[i].currentFrame], bones[i].x, bones[i].y)
-        end
-    end
 
 end
