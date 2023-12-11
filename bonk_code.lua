@@ -9,41 +9,14 @@ function _init()
 end
 
 
--- Helper functions {#f00}
 
---Print help text on screen
-    function timer()
-        print(time(),50,10,7)
-    end
-
--- Calculate distance between two points
-    function distanceSquared(x1, y1, x2, y2)
-        return (x2 - x1)^2 + (y2 - y1)^2
-    end
-
--- Checking for collision
-    function collides(obj1, obj2)
-        return obj1.x < obj2.x + obj2.width and
-            obj1.x + obj1.width > obj2.x and
-            obj1.y < obj2.y + obj2.height and
-            obj1.y + obj1.height > obj2.y
-    end
-
---collision code from lecture 2
-    function checkcollision(obj1, obj2)
-        if (obj1.x > obj2.x + obj2.width) return false
-        if (obj1.y > obj2.y + obj2.height) return false
-        if (obj1.x + obj1.width < obj2.x) return false
-        if (obj1.y + obj1.height < obj2.y) return false
-        return true
-    end
 
 -->8
 -- bonk data
 
 --Bonk data table {#c81}
 bonk = {
-    position = {x = 20, y = 20}, -- Initial position of the character
+    pos = {x = 20, y = 20}, -- Initial pos of the character
     sprites = {0, 1, 2},
     width = 8,
     height = 8,
@@ -64,13 +37,12 @@ function updateAnimation()
 end
 
 
-
 -- Function for drawing bonk {#c81}
 function drawBonk()
     if bonk.flip then
-        spr(bonk.sprites[bonk.currentFrame], bonk.position.x, bonk.position.y, 1, 1, true, false)
+        spr(bonk.sprites[bonk.currentFrame], bonk.pos.x, bonk.pos.y, 1, 1, true, false)
     else
-        spr(bonk.sprites[bonk.currentFrame], bonk.position.x, bonk.position.y)
+        spr(bonk.sprites[bonk.currentFrame], bonk.pos.x, bonk.pos.y)
     end
 end
 
@@ -80,7 +52,7 @@ end
 
 -- Thief data table {#c0c}
 thief = {
-    position = {x = 40, y = 20}, -- Initial position of the character
+    pos = {x = 40, y = 20}, -- Initial position of the character
     sprites = {
         {5, 21}, -- First animation frame
         {6, 22} -- Second animation frame
@@ -109,14 +81,13 @@ end
 -- Function for drawing thief {#c0c}
 function drawThief()
     if thief.flip then
-        spr(thief.sprites[thief.currentFrame][1], thief.position.x, thief.position.y, 1, 1, true, false)
-        spr(thief.sprites[thief.currentFrame][2], thief.position.x, thief.position.y + 8, 1, 1, true, false)
+        spr(thief.sprites[thief.currentFrame][1], thief.pos.x, thief.pos.y, 1, 1, true, false)
+        spr(thief.sprites[thief.currentFrame][2], thief.pos.x, thief.pos.y + 8, 1, 1, true, false)
     else
-        spr(thief.sprites[thief.currentFrame][1], thief.position.x, thief.position.y)
-        spr(thief.sprites[thief.currentFrame][2], thief.position.x, thief.position.y + 8)
+        spr(thief.sprites[thief.currentFrame][1], thief.pos.x, thief.pos.y)
+        spr(thief.sprites[thief.currentFrame][2], thief.pos.x, thief.pos.y + 8)
     end
 end
-
 
 
 
@@ -149,6 +120,35 @@ function spawnBone()
 end
 
 
+-- Helper functions {#f00}
+
+--Print help text on screen
+function timer()
+    print(time(),50,10,7)
+end
+
+-- Calculate distance between two points
+function distanceSquared(x1, y1, x2, y2)
+    return (x2 - x1)^2 + (y2 - y1)^2
+end
+
+-- Checking for collision -- THIS IS NOT IN USE
+function collides(obj1, obj2)
+    return obj1.x < obj2.x + obj2.width and
+        obj1.x + obj1.width > obj2.x and
+        obj1.y < obj2.y + obj2.height and
+        obj1.y + obj1.height > obj2.y
+end
+
+--collision code from lecture 2 -- THIS WORKS
+function checkcollision(obj1, obj2)
+if (obj1.pos.x > obj2.pos.x + obj2.width) return false
+if (obj1.pos.y > obj2.pos.y + obj2.height) return false
+if (obj1.pos.x + obj1.width < obj2.pos.x) return false
+if (obj1.pos.y + obj1.height < obj2.pos.y) return false
+return true
+end
+
 
 -->8
 --code
@@ -158,27 +158,45 @@ function _update()
 
 
 -- bonk animation updates & respawning from other side
+
+--Check collision between thief and bonk
+    if checkcollision(thief, bonk) then
+            sfx(03)
+    end
+
+-- check collision between bonk and bones
+    if #bones > 0 then
+        for i = 1, #bones do
+            if bones[i] and bones[i].active and bones[i].pos and checkcollision(bonk, bones[i]) then
+                sfx(04)
+                bones[i].active = false
+            end
+        end
+    end
+    
+
+
     -- movement and animation updates {#c81}
     p_moved = false
     if btn(0) then 
-        bonk.position.x = bonk.position.x - bonk.spd
+        bonk.pos.x = bonk.pos.x - bonk.spd
         bonk.flip = true
         p_moved = true
         bonk.anim_counter = bonk.anim_counter + 1
     end
     if btn(1) then
-        bonk.position.x = bonk.position.x + bonk.spd
+        bonk.pos.x = bonk.pos.x + bonk.spd
         bonk.flip = false
         p_moved = true
         bonk.anim_counter = bonk.anim_counter + 1
     end
     if btn(2) then
-        bonk.position.y = bonk.position.y - bonk.spd
+        bonk.pos.y = bonk.pos.y - bonk.spd
         p_moved = true
         bonk.anim_counter = bonk.anim_counter + 1
     end
     if btn(3) then
-        bonk.position.y = bonk.position.y + bonk.spd
+        bonk.pos.y = bonk.pos.y + bonk.spd
         p_moved = true
         bonk.anim_counter = bonk.anim_counter + 1
     end
@@ -191,10 +209,10 @@ function _update()
 
 
 -- respawning from other side {#c81}
-    if bonk.position.x < -4 then bonk.position.x = 124
-        elseif bonk.position.x > 124 then bonk.position.x = -4
-        elseif bonk.position.y < -4 then bonk.position.y = 124
-        elseif bonk.position.y > 124 then bonk.position.y = -4
+    if bonk.pos.x < -4 then bonk.pos.x = 124
+        elseif bonk.pos.x > 124 then bonk.pos.x = -4
+        elseif bonk.pos.y < -4 then bonk.pos.y = 124
+        elseif bonk.pos.y > 124 then bonk.pos.y = -4
     end
 
 
@@ -222,13 +240,13 @@ function _update()
 
 -- Move the thief randomly {#c0c}
     -- Move thief
-    thief.position.x += thief.direction.x * thief.spd
-    thief.position.y += thief.direction.y * thief.spd
+    thief.pos.x += thief.direction.x * thief.spd
+    thief.pos.y += thief.direction.y * thief.spd
 -- Bounce off the walls
-    if thief.position.x <= 0 or thief.position.x >= 120 then
+    if thief.pos.x <= 0 or thief.pos.x >= 120 then
         thief.direction.x *= -1 -- Reverse horizontal direction
     end
-    if thief.position.y <= 0 or thief.position.y >= 112 then
+    if thief.pos.y <= 0 or thief.pos.y >= 112 then
         thief.direction.y *= -1 -- Reverse vertical direction
     end
 
