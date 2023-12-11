@@ -58,7 +58,7 @@ end
 -->8
 -- thief data
 
--- Thief variables table {#c0c}
+-- Thief data table {#c0c}
 thief = {
     position = {x = 40, y = 20}, -- Initial position of the character
     sprites = {
@@ -67,10 +67,11 @@ thief = {
     },
     width = 8,
     height = 16,
--- Random initial direction (-1, 0, 1)
     direction = {x = 0, y = 0},
     currentFrame = 1,
-    spd = 1
+    spd = 1,
+    animTimer = 0, -- New property to keep track of animation time
+    animSpeed = 12, -- Adjust the speed to control the animation
 }
 
 --Thief movement logic {#c0c}
@@ -208,6 +209,17 @@ function _update()
         thief.direction.y *= -1 -- Reverse vertical direction
     end
 
+-- Update thief animation frame {#c0c}
+    thief.animTimer += 1
+    if thief.animTimer >= thief.animSpeed then
+        thief.animTimer = 0
+        -- Toggle frames between 1 and 2
+        if thief.currentFrame == 1 then
+            thief.currentFrame = 2
+        else
+            thief.currentFrame = 1
+        end
+    end
 
 -- Handle other game logic, interactions, etc. HERE
 
