@@ -1,23 +1,36 @@
--- Init function {#f00,1}
+
+
+-- here's another color {#0f0}
+
+
+-- Init function {#3,2}
 function _init()
     elapsedTime = 0
 end
 
 
 -- Helper functions {#f00}
+
 -- Calculate distance between two points
     function distanceSquared(x1, y1, x2, y2)
         return (x2 - x1)^2 + (y2 - y1)^2
     end
+
 -- Checking for collision
-function collides(obj1, obj2)
-    return obj1.x < obj2.x + obj2.width and
-           obj1.x + obj1.width > obj2.x and
-           obj1.y < obj2.y + obj2.height and
-           obj1.y + obj1.height > obj2.y
-end
+    function collides(obj1, obj2)
+        return obj1.x < obj2.x + obj2.width and
+            obj1.x + obj1.width > obj2.x and
+            obj1.y < obj2.y + obj2.height and
+            obj1.y + obj1.height > obj2.y
+    end
 
-
+--collision code from lecture 2
+    function checkcollision(obj1, obj2)
+        if (obj1.x > obj2.x + obj2.width) return false
+        if (obj1.y > obj2.y + obj2.height) return false
+        if (obj1.x + obj1.width < obj2.x) return false
+        if (obj1.y + obj1.height < obj2.y) return false
+    end
 
 -->8
 -- bonk data
@@ -33,6 +46,7 @@ bonk = {
     spd = 1,
     flip = false,
 }
+
 
 --This animation functions looks to see if the bonk.currentFrame value is more than the number of sprites for Bonk. If so, it resets the current frame to zero.
 -- Bonk change frame function {#c81,6}
@@ -86,8 +100,6 @@ end
         thief.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
     end
 
-
-
 -- Function for drawing thief {#c0c}
 function drawThief()
     if thief.flip then
@@ -138,6 +150,7 @@ end
 -- update function {#f00,1}
 function _update()
 
+
 -- bonk animation updates & respawning from other side
     -- movement and animation updates {#c81}
     p_moved = false
@@ -170,6 +183,7 @@ function _update()
         end
     end
 
+
 -- respawning from other side {#c81}
     if bonk.position.x < -4 then bonk.position.x = 124
         elseif bonk.position.x > 124 then bonk.position.x = -4
@@ -177,14 +191,17 @@ function _update()
         elseif bonk.position.y > 124 then bonk.position.y = -4
     end
 
+
 -- Increase overall timer {#fff}
     elapsedTime += 1  -- Increment elapsed time by 1 frame
+
 
 -- Check if it's time to spawn a new bone {#fff}
     if elapsedTime >= spawnInterval then
         elapsedTime = 0
         spawnBone()
     end
+
 
 -- Update bone animation {#fff}
     for i = 1, #bones do
@@ -209,6 +226,7 @@ function _update()
         thief.direction.y *= -1 -- Reverse vertical direction
     end
 
+
 -- Update thief animation frame {#c0c}
     thief.animTimer += 1
     if thief.animTimer >= thief.animSpeed then
@@ -228,15 +246,13 @@ end
 -->8
 --draw
 
+
 -- Draw function {#f00}
 function _draw()
 
--- here's another color {#0f0}
 
 -- Screen background color
     cls(0)
-
-
 
 
 -- Draw Bones with animation frames {#fff}
@@ -247,9 +263,9 @@ for i = 1, #bones do
 end
 
 
-
 -- Draw Bonk {#c81}
     drawBonk()
+
 
 -- Draw Thief {#c0c}
     drawThief()
