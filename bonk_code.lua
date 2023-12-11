@@ -30,6 +30,7 @@ end
         if (obj1.y > obj2.y + obj2.height) return false
         if (obj1.x + obj1.width < obj2.x) return false
         if (obj1.y + obj1.height < obj2.y) return false
+        return true
     end
 
 -->8
