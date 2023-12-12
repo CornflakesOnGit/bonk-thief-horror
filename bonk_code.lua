@@ -1,6 +1,6 @@
 
 
--- here's another color {#0f0}
+
 
 
 -- Init function {#3,2}
@@ -91,6 +91,7 @@ end
 
 
 
+
 -->8
 --bone data
 
@@ -98,9 +99,7 @@ end
 bones = {}
 maxBones = 10
 spawnInterval = 100  --this number refers to frames that have happened (adjust as needed)
-
--- bone spawn logic {#fff}
-function spawnBone()
+function spawnBone() -- bone spawn logic
     -- Check if there are fewer than the maximum allowed bones
     if #bones < maxBones then
         -- Spawn a new bone at a random location and set it to active = true
@@ -120,64 +119,36 @@ function spawnBone()
     end
 end
 
+-- Draw Bones with animation frames {#fff}
+function draw_bones()
+    for i = 1, #bones do
+        if bones[i] and bones[i].active then
+            spr(bones[i].sprites[bones[i].currentFrame], bones[i].pos.x, bones[i].pos.y)
+        end
+    end
+end
 
--- Helper functions {#f00}
+-- Function declarations {#f00}
 
 --Print help text on screen
 function timer()
     print(time(),50,10,7)
 end
 
--- Calculate distance between two points
-function distanceSquared(x1, y1, x2, y2)
-    return (x2 - x1)^2 + (y2 - y1)^2
-end
 
--- Checking for collision -- THIS IS NOT IN USE
-function collides(obj1, obj2)
-    return obj1.x < obj2.x + obj2.width and
-        obj1.x + obj1.width > obj2.x and
-        obj1.y < obj2.y + obj2.height and
-        obj1.y + obj1.height > obj2.y
-end
 
---collision code from lecture 2 -- THIS WORKS
+
+-- collision function {#0f0}
 function checkcollision(obj1, obj2)
-if (obj1.pos.x > obj2.pos.x + obj2.width) return false
-if (obj1.pos.y > obj2.pos.y + obj2.height) return false
-if (obj1.pos.x + obj1.width < obj2.pos.x) return false
-if (obj1.pos.y + obj1.height < obj2.pos.y) return false
-return true
+    if (obj1.pos.x > obj2.pos.x + obj2.width) then return false end
+    if (obj1.pos.y > obj2.pos.y + obj2.height) then return false end
+    if (obj1.pos.x + obj1.width < obj2.pos.x) then return false end
+    if (obj1.pos.y + obj1.height < obj2.pos.y) then return false end
+    return true
 end
 
-
--->8
---code
-
--- update function {#f00,1}
-function _update()
-
-
--- bonk animation updates & respawning from other side
-
---Check collision between thief and bonk
-    if checkcollision(thief, bonk) then
-            sfx(03)
-    end
-
--- check collision between bonk and bones
-    if #bones > 0 then
-        for i = 1, #bones do
-            if bones[i] and bones[i].active and bones[i].pos and checkcollision(bonk, bones[i]) then
-                sfx(04)
-                bones[i].active = false
-            end
-        end
-    end
-    
-
-
-    -- movement and animation updates {#c81}
+-- movement and animation updates {#c81}
+function bonk_movement()
     p_moved = false
     if btn(0) then 
         bonk.pos.x = bonk.pos.x - bonk.spd
@@ -207,28 +178,78 @@ function _update()
             bonk.anim_counter = 0
         end
     end
+end
 
+-- Move the thief randomly {#c0c}
+function thief_movement()
+    -- Move thief
+    thief.pos.x = thief.pos.x + thief.direction.x * thief.spd
+    thief.pos.y = thief.pos.y + thief.direction.y * thief.spd
+-- Bounce off the walls
+    if thief.pos.x <= 0 or thief.pos.x >= 120 then
+        thief.direction.x *= -1 -- Reverse horizontal direction
+    end
+    if thief.pos.y <= 0 or thief.pos.y >= 112 then
+        thief.direction.y *= -1 -- Reverse vertical direction
+    end
+end
+
+function thief_animation()
+    -- Update thief animation frame {#c0c}
+        thief.animTimer += 1
+        if thief.animTimer >= thief.animSpeed then
+            thief.animTimer = 0
+            -- Toggle frames between 1 and 2
+            if thief.currentFrame == 1 then
+                thief.currentFrame = 2
+            else
+                thief.currentFrame = 1
+            end
+        end
+end
+--Check collision between thief and bonk {#c0c}
+function collision_bonk_thief()
+    if checkcollision(bonk, thief) then
+            sfx(03)
+    end
+end
+
+-- check collision between bonk and bones
+function collision_bonk_bone()
+    if #bones > 0 then
+        for i = 1, #bones do
+            if bones[i] and bones[i].active and bones[i].pos and checkcollision(bonk, bones[i]) then
+                sfx(04)
+                bones[i].active = false
+            end
+        end
+    end
+end
 
 -- respawning from other side {#c81}
+function bonk_edge_movement()
     if bonk.pos.x < -4 then bonk.pos.x = 124
         elseif bonk.pos.x > 124 then bonk.pos.x = -4
         elseif bonk.pos.y < -4 then bonk.pos.y = 124
         elseif bonk.pos.y > 124 then bonk.pos.y = -4
     end
-
+end
 
 -- Increase overall timer {#fff}
+function game_timer()
     elapsedTime += 1  -- Increment elapsed time by 1 frame
+end
 
-
--- Check if it's time to spawn a new bone {#fff}
+function spawn_new_bone()
+    -- Check if it's time to spawn a new bone {#fff}
     if elapsedTime >= spawnInterval then
         elapsedTime = 0
         spawnBone()
     end
-
+end
 
 -- Update bone animation {#fff}
+function bone_animation()
     for i = 1, #bones do
         if bones[i] and bones[i].active then
             bones[i].anim_counter += 1
@@ -237,40 +258,32 @@ function _update()
             end
         end
     end
+end
 
 
--- Move the thief randomly {#c0c}
-    -- Move thief
-    thief.pos.x += thief.direction.x * thief.spd
-    thief.pos.y += thief.direction.y * thief.spd
--- Bounce off the walls
-    if thief.pos.x <= 0 or thief.pos.x >= 120 then
-        thief.direction.x *= -1 -- Reverse horizontal direction
-    end
-    if thief.pos.y <= 0 or thief.pos.y >= 112 then
-        thief.direction.y *= -1 -- Reverse vertical direction
-    end
 
+-->8
+--update
 
--- Update thief animation frame {#c0c}
-    thief.animTimer += 1
-    if thief.animTimer >= thief.animSpeed then
-        thief.animTimer = 0
-        -- Toggle frames between 1 and 2
-        if thief.currentFrame == 1 then
-            thief.currentFrame = 2
-        else
-            thief.currentFrame = 1
-        end
-    end
+-- update function {#f00,1}
+function _update()
 
--- Handle other game logic, interactions, etc. HERE
+game_timer()
+bonk_movement()
+bonk_edge_movement()
+thief_movement()
+thief_animation()
+collision_bonk_thief()
+collision_bonk_bone()
+spawn_new_bone()
+bone_animation()
 
 end
 
+
+
 -->8
 --draw
-
 
 -- Draw function {#f00}
 function _draw()
@@ -282,13 +295,9 @@ function _draw()
 --timer on screen
     timer()
 
--- Draw Bones with animation frames {#fff}
-for i = 1, #bones do
-    if bones[i] and bones[i].active then
-        spr(bones[i].sprites[bones[i].currentFrame], bones[i].pos.x, bones[i].pos.y)
-    end
-end
 
+
+draw_bones()
 
 -- Draw Bonk {#c81}
     drawBonk()
