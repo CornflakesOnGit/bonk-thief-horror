@@ -105,8 +105,9 @@ function spawnBone()
     if #bones < maxBones then
         -- Spawn a new bone at a random location and set it to active = true
         bones[#bones + 1] = {
-            x = rnd(120),
-            y = rnd(120),
+            pos = {x = rnd(120), y = rnd(120)}, -- random spawn position
+            --x = rnd(120),
+            --y = rnd(120),
             width = 8,
             height = 4,
             active = true,
@@ -284,7 +285,7 @@ function _draw()
 -- Draw Bones with animation frames {#fff}
 for i = 1, #bones do
     if bones[i] and bones[i].active then
-        spr(bones[i].sprites[bones[i].currentFrame], bones[i].x, bones[i].y)
+        spr(bones[i].sprites[bones[i].currentFrame], bones[i].pos.x, bones[i].pos.y)
     end
 end
 
