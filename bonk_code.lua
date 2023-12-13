@@ -287,8 +287,18 @@ end
 
 function _draw()
     cls(0)
+    map(0, 0, 0, 0, 16, 16)
     timer()
     draw_bones()
     drawBonk()
     drawThief()
 end
+
+-- map(screen_x, screen_y, map_x, map_y, width, height)
+
+-- screen_x: The x-coordinate on the screen where the map drawing starts
+-- screen_y: The y-coordinate on the screen where the map drawing starts
+-- map_x: The x-coordinate in the map data where drawing starts
+-- map_y: The y-coordinate in the map data where drawing starts
+-- width: The width (in tiles) of the map area to draw
+-- height: The height (in tiles) of the map area to draw
