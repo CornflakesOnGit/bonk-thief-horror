@@ -1,20 +1,11 @@
-
-
-
-
-
--- Init function {#3,2}
 function _init()
     elapsedTime = 0
 end
 
 
-
-
 -->8
--- bonk data
+--data tables
 
---Bonk data table {#c81}
 bonk = {
     pos = {x = 20, y = 20}, -- Initial pos of the character
     sprites = {0, 1, 2},
@@ -26,31 +17,6 @@ bonk = {
     flip = false,
 }
 
-
---This animation functions looks to see if the bonk.currentFrame value is more than the number of sprites for Bonk. If so, it resets the current frame to zero.
--- Bonk change frame function {#c81,6}
-function updateAnimation()
-        bonk.currentFrame = bonk.currentFrame + 1
-        if bonk.currentFrame > #bonk.sprites then
-            bonk.currentFrame = 0
-        end
-end
-
-
--- Function for drawing bonk {#c81}
-function drawBonk()
-    if bonk.flip then
-        spr(bonk.sprites[bonk.currentFrame], bonk.pos.x, bonk.pos.y, 1, 1, true, false)
-    else
-        spr(bonk.sprites[bonk.currentFrame], bonk.pos.x, bonk.pos.y)
-    end
-end
-
-
--->8
--- thief data
-
--- Thief data table {#c0c}
 thief = {
     pos = {x = 40, y = 20}, -- Initial position of the character
     sprites = {
@@ -66,17 +32,29 @@ thief = {
     animSpeed = 12, -- Adjust the speed to control the animation
 }
 
---Thief movement logic {#c0c}
--- Loop to ensure the thief doesn't move straight right, up, or down
-while thief.direction.x == 0 or thief.direction.y == 0 do
-    thief.direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}
-end
 
---Prevent standstill {#c0c}
--- Check if both direction components are zero, and if so, set a default direction
-    if thief.direction.x == 0 and thief.direction.y == 0 then
-        thief.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
+bones = {
+    max = 10,
+    spawn_interval = 100, --this number refers to frames that have happened (adjust as needed)
+}
+
+
+
+
+
+
+
+
+
+-->8
+-- Function declarations
+
+-- Loop to ensure the thief doesn't move straight right, up, or down
+function ensure_thief_diagonal()
+    while thief.direction.x == 0 or thief.direction.y == 0 do
+        thief.direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}
     end
+end
 
 -- Function for drawing thief {#c0c}
 function drawThief()
@@ -89,19 +67,19 @@ function drawThief()
     end
 end
 
+-- Function for drawing bonk {#c81}
+function drawBonk()
+    if bonk.flip then
+        spr(bonk.sprites[bonk.currentFrame], bonk.pos.x, bonk.pos.y, 1, 1, true, false)
+    else
+        spr(bonk.sprites[bonk.currentFrame], bonk.pos.x, bonk.pos.y)
+    end
+end
 
-
-
--->8
---bone data
-
--- Initialize variables for bone spawning {#fff}
-bones = {}
-maxBones = 10
-spawnInterval = 100  --this number refers to frames that have happened (adjust as needed)
-function spawnBone() -- bone spawn logic
+-- Spawn a new bone into the bone table
+function spawnBone()
     -- Check if there are fewer than the maximum allowed bones
-    if #bones < maxBones then
+    if #bones < bones.max then
         -- Spawn a new bone at a random location and set it to active = true
         bones[#bones + 1] = {
             pos = {x = rnd(120), y = rnd(120)}, -- random spawn position
@@ -115,7 +93,7 @@ function spawnBone() -- bone spawn logic
             currentFrame = 1,
             anim_counter = 0,
             anim_speed = 20, --every 20 frames the animation updates to next frame
-        }
+            }
     end
 end
 
@@ -128,15 +106,10 @@ function draw_bones()
     end
 end
 
--- Function declarations {#f00}
-
 --Print help text on screen
 function timer()
     print(time(),50,10,7)
 end
-
-
-
 
 -- collision function {#0f0}
 function checkcollision(obj1, obj2)
@@ -174,9 +147,25 @@ function bonk_movement()
     end
     if p_moved then
         if bonk.anim_counter >= 5 then
-            updateAnimation()
+            bonk_animation()
             bonk.anim_counter = 0
         end
+    end
+
+    -- respawning from other side {#c81}
+    if bonk.pos.x < -4 then bonk.pos.x = 124
+        elseif bonk.pos.x > 124 then bonk.pos.x = -4
+        elseif bonk.pos.y < -4 then bonk.pos.y = 124
+        elseif bonk.pos.y > 124 then bonk.pos.y = -4
+    end
+end
+
+-- Bonk change frame function {#c81,6}
+function bonk_animation()
+    --This animation functions looks to see if the bonk.currentFrame value is more than the number of sprites for Bonk. If so, it resets the current frame to zero.
+    bonk.currentFrame = bonk.currentFrame + 1
+    if bonk.currentFrame > #bonk.sprites then
+        bonk.currentFrame = 0
     end
 end
 
@@ -185,18 +174,29 @@ function thief_movement()
     -- Move thief
     thief.pos.x = thief.pos.x + thief.direction.x * thief.spd
     thief.pos.y = thief.pos.y + thief.direction.y * thief.spd
--- Bounce off the walls
+
+    -- Bounce off the walls
     if thief.pos.x <= 0 or thief.pos.x >= 120 then
-        thief.direction.x *= -1 -- Reverse horizontal direction
+        thief.direction.x = thief.direction.x * -1 -- Reverse horizontal direction
     end
+
     if thief.pos.y <= 0 or thief.pos.y >= 112 then
-        thief.direction.y *= -1 -- Reverse vertical direction
+        thief.direction.y = thief.direction.y * -1 -- Reverse vertical direction
+    end
+
+    --Prevent standstill {#c0c}
+    -- Check if both direction components are zero, and if so, set a default direction
+    if thief.direction.x == 0 and thief.direction.y == 0 then
+        thief.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
     end
 end
 
+ensure_thief_diagonal()
+
+-- Update thief animation
 function thief_animation()
     -- Update thief animation frame {#c0c}
-        thief.animTimer += 1
+        thief.animTimer = thief.animTimer + 1
         if thief.animTimer >= thief.animSpeed then
             thief.animTimer = 0
             -- Toggle frames between 1 and 2
@@ -207,6 +207,7 @@ function thief_animation()
             end
         end
 end
+
 --Check collision between thief and bonk {#c0c}
 function collision_bonk_thief()
     if checkcollision(bonk, thief) then
@@ -226,23 +227,16 @@ function collision_bonk_bone()
     end
 end
 
--- respawning from other side {#c81}
-function bonk_edge_movement()
-    if bonk.pos.x < -4 then bonk.pos.x = 124
-        elseif bonk.pos.x > 124 then bonk.pos.x = -4
-        elseif bonk.pos.y < -4 then bonk.pos.y = 124
-        elseif bonk.pos.y > 124 then bonk.pos.y = -4
-    end
-end
+
 
 -- Increase overall timer {#fff}
 function game_timer()
-    elapsedTime += 1  -- Increment elapsed time by 1 frame
+    elapsedTime = elapsedTime + 1  -- Increment elapsed time by 1 frame
 end
 
+-- Check if it's time to spawn a new bone and do it{#fff}
 function spawn_new_bone()
-    -- Check if it's time to spawn a new bone {#fff}
-    if elapsedTime >= spawnInterval then
+    if elapsedTime >= bones.spawn_interval then
         elapsedTime = 0
         spawnBone()
     end
@@ -252,15 +246,13 @@ end
 function bone_animation()
     for i = 1, #bones do
         if bones[i] and bones[i].active then
-            bones[i].anim_counter += 1
+            bones[i].anim_counter = bones[i].anim_counter + 1
             if bones[i].anim_counter % bones[i].anim_speed == 0 then
                 bones[i].currentFrame = 3 - bones[i].currentFrame -- Toggle between 1 and 2 frames
             end
         end
     end
 end
-
-
 
 -->8
 --update
@@ -270,7 +262,6 @@ function _update()
 
 game_timer()
 bonk_movement()
-bonk_edge_movement()
 thief_movement()
 thief_animation()
 collision_bonk_thief()
