@@ -1,5 +1,7 @@
 function _init()
     elapsedTime = 0
+    gameTimer = 90
+    score = 0
 end
 
 
@@ -17,8 +19,9 @@ bonk = {
     flip = false,
 }
 
+
 thief = {
-    pos = {x = 40, y = 20}, -- Initial position of the character
+    pos = {x = flr(rnd((60)+8)), y = flr(rnd((20 + 8)))}, -- Initial position of the character
     sprites = {
         {5, 21}, -- First animation frame
         {6, 22} -- Second animation frame
@@ -37,6 +40,17 @@ bones = {
     spawn_interval = 100, --this number refers to frames that have happened (adjust as needed)
 }
 
+poop1 = {
+    pos = {x = 40, y = flr(rnd((80 + 20)))}, -- Initial position of poop
+    width = 8,
+    height = 8,
+}
+
+poop2 = {
+    pos = {x = 85, y = flr(rnd((80 + 20)))}, -- Initial position of poop
+    width = 8,
+    height = 8,
+}
 
 -->8
 -- bonk functions
@@ -158,13 +172,18 @@ function drawThief()
     end
 end
 
-
-
---Print help text on screen
-function timer()
-    print(time(),50,10,7)
+--Print HUD on screen
+function hud()
+    print(gameTimer,50,10,7)
+    print("score " ..score,50,20,7)
+    --print(time(),50,10,7)
+    --print("# of bones: " ..#bones,50,20,7)
 end
 
+--Timer for end of game
+function countdown()
+    gameTimer = gameTimer - 0.05
+end
 
 -->8
 -- bone functions
@@ -191,6 +210,7 @@ function spawnBone()
             }
     end
 end
+
 
 -- Spawn a bone after time elapses if under 10 bones
 function spawn_new_bone()
@@ -223,14 +243,30 @@ end
 
 
 -->8
+-- poop
+
+function draw_poop()
+    if poop2.pos.x == poop1.pos.x and poop2.pos.y == poop1.pos.y then
+        poop2.pos.x = flr(rnd(90) + 20)
+        poop2.pos.y = flr(rnd(90) + 20)
+    end
+    spr(4, poop1.pos.x, poop1.pos.y)
+    spr(4, poop2.pos.x, poop2.pos.y)
+end
+
+function poop_change()
+
+end
+
+-->8
 -- collision functions
 
 -- main collision function {#0f0}
 function checkcollision(obj1, obj2)
-    if (obj1.pos.x > obj2.pos.x + obj2.width) then return false end
-    if (obj1.pos.y > obj2.pos.y + obj2.height) then return false end
-    if (obj1.pos.x + obj1.width < obj2.pos.x) then return false end
-    if (obj1.pos.y + obj1.height < obj2.pos.y) then return false end
+    if (obj1.pos.x > (obj2.pos.x + obj2.width)) then return false end
+    if (obj1.pos.y > (obj2.pos.y + obj2.height)) then return false end
+    if ((obj1.pos.x + obj1.width) < obj2.pos.x) then return false end
+    if ((obj1.pos.y + obj1.height) < obj2.pos.y) then return false end
     return true
 end
 
@@ -245,14 +281,26 @@ end
 function collision_bonk_bone()
     if #bones > 0 then
         for i = 1, #bones do
-            if bones[i] and bones[i].active and bones[i].pos and checkcollision(bonk, bones[i]) then
+            if bones[i] and bones[i].active and checkcollision(bonk, bones[i]) then
                 sfx(04)
-                bones[i].active = false
+                score = score + 1
+                deli(bones, i)
             end
         end
     end
 end
 
+-- statt -1 könnte es ein random-wert sein, von -0,8 bis 1,2
+
+function collision_thief_poop()
+    if checkcollision(thief, poop1) then
+        thief.direction = {x = thief.direction.x * -1, y = thief.direction.y * -1}
+    end
+
+    if checkcollision(thief, poop2) then
+        thief.direction = {x = thief.direction.x * -1, y = thief.direction.y * -1}
+    end
+end
 
 
 -->8
@@ -269,15 +317,19 @@ end
 --update
 
 function _update()
-    game_timer()
-    bonk_movement()
-    thief_movement()
-    ensure_thief_diagonal()
-    thief_animation()
-    collision_bonk_thief()
-    collision_bonk_bone()
-    spawn_new_bone()
-    bone_animation()
+--    if not gameTimer == 0 then
+        countdown()
+        game_timer()
+        bonk_movement()
+        thief_movement()
+        --ensure_thief_diagonal()
+        thief_animation()
+        collision_bonk_thief()
+        collision_thief_poop()
+        collision_bonk_bone()
+        spawn_new_bone()
+        bone_animation()
+--    end
 end
 
 
@@ -288,7 +340,8 @@ end
 function _draw()
     cls(0)
     map(0, 0, 0, 0, 16, 16)
-    timer()
+    draw_poop()
+    hud()
     draw_bones()
     drawBonk()
     drawThief()
