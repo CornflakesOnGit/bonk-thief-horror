@@ -1,7 +1,22 @@
 function _init()
-    elapsedTime = 0
-    gameTimer = 90
     score = 0
+
+    elapsed_bone_time = 0
+    elapsed_poop_time = 0
+    time_left = 90
+
+    poop_announcement = 0
+
+-- for flashing text
+    poop_flash_timer = 0
+    show_poop_text = true
+
+-- debugging my teleporting poop
+    unstuck_timer = 0
+    no_collision_frames = 0
+
+    score_sound_played = false
+
 end
 
 
@@ -9,45 +24,62 @@ end
 --data tables
 
 bonk = {
-    pos = {x = 20, y = 20}, -- Initial pos of the character
+    pos = {x = 60, y = 110}, -- Initial position of the character
     sprites = {0, 1, 2},
     width = 8,
     height = 8,
     currentFrame = 0,
     anim_counter = 0,
-    spd = 1,
+    speed = 1,
     flip = false,
 }
 
 
-thief = {
-    pos = {x = flr(rnd((60)+8)), y = flr(rnd((20 + 8)))}, -- Initial position of the character
+thief1 = {
+    pos = {x = flr(rnd((24)+8)), y = flr(rnd((90 + 8)))}, -- Initial position of the character
     sprites = {
         {5, 21}, -- First animation frame
         {6, 22} -- Second animation frame
     },
     width = 8,
     height = 16,
-    direction = {x = 0, y = 0},
+--might want to implement this for movement in all 4 directions: 
+--direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}
+    direction = {x = flr(rnd(2)), y = flr(rnd(2))},
     currentFrame = 1,
-    spd = 1,
+    speed = 1.6,
     animTimer = 0, -- New property to keep track of animation time
-    animSpeed = 12, -- Adjust the speed to control the animation
+    animSpeed = 12, -- Controls the animation speed
+}
+
+thief2 = {
+    pos = {x = flr(rnd((24)+8)), y = flr(rnd((90 + 8)))}, -- Initial position of the character
+    sprites = {
+        {5, 21}, -- First animation frame
+        {6, 22} -- Second animation frame
+    },
+    width = 8,
+    height = 16,
+    direction = {x = flr(rnd(2)), y = flr(rnd(2))},
+    currentFrame = 1,
+    speed = 1.6,
+    animTimer = 0, -- New property to keep track of animation time
+    animSpeed = 12, -- Controls the animation speed
 }
 
 bones = {
     max = 10,
-    spawn_interval = 100, --this number refers to frames that have happened (adjust as needed)
+    spawn_interval = 70, --this number refers to frames that have been drawn
 }
 
 poop1 = {
-    pos = {x = 40, y = flr(rnd((80 + 20)))}, -- Initial position of poop
+    pos = {x = 20, y = 20},
     width = 8,
     height = 8,
 }
 
 poop2 = {
-    pos = {x = 85, y = flr(rnd((80 + 20)))}, -- Initial position of poop
+    pos = {x = 85, y = flr(rnd((70 + 40)))}, -- Initial position of poop
     width = 8,
     height = 8,
 }
@@ -69,24 +101,24 @@ end
 function bonk_movement()
     p_moved = false
     if btn(0) then 
-        bonk.pos.x = bonk.pos.x - bonk.spd
+        bonk.pos.x = bonk.pos.x - bonk.speed
         bonk.flip = true
         p_moved = true
         bonk.anim_counter = bonk.anim_counter + 1
     end
     if btn(1) then
-        bonk.pos.x = bonk.pos.x + bonk.spd
+        bonk.pos.x = bonk.pos.x + bonk.speed
         bonk.flip = false
         p_moved = true
         bonk.anim_counter = bonk.anim_counter + 1
     end
     if btn(2) then
-        bonk.pos.y = bonk.pos.y - bonk.spd
+        bonk.pos.y = bonk.pos.y - bonk.speed
         p_moved = true
         bonk.anim_counter = bonk.anim_counter + 1
     end
     if btn(3) then
-        bonk.pos.y = bonk.pos.y + bonk.spd
+        bonk.pos.y = bonk.pos.y + bonk.speed
         p_moved = true
         bonk.anim_counter = bonk.anim_counter + 1
     end
@@ -117,78 +149,121 @@ end
 -->8
 -- thief functions
 
--- Move the thief randomly {#c0c}
-function thief_movement()
-    -- Move thief
-    thief.pos.x = thief.pos.x + thief.direction.x * thief.spd
-    thief.pos.y = thief.pos.y + thief.direction.y * thief.spd
+-- Move thief1 randomly {#c0c}
+function thief1_movement()
+    -- Move thief1
+    thief1.pos.x = thief1.pos.x + thief1.direction.x * thief1.speed
+    thief1.pos.y = thief1.pos.y + thief1.direction.y * thief1.speed
 
     -- Bounce off the walls
-    if thief.pos.x <= 0 or thief.pos.x >= 120 then
-        thief.direction.x = thief.direction.x * -1 -- Reverse horizontal direction
+    if thief1.pos.x <= 0 or thief1.pos.x >= 120 then
+        thief1.direction.x = thief1.direction.x * -1 -- Reverse horizontal direction
     end
 
-    if thief.pos.y <= 0 or thief.pos.y >= 112 then
-        thief.direction.y = thief.direction.y * -1 -- Reverse vertical direction
+    if thief1.pos.y <= 0 or thief1.pos.y >= 112 then
+        thief1.direction.y = thief1.direction.y * -1 -- Reverse vertical direction
     end
 
     --Prevent standstill {#c0c}
     -- Check if both direction components are zero, and if so, set a default direction
-    if thief.direction.x == 0 and thief.direction.y == 0 then
-        thief.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
+    if thief1.direction.x == 0 and thief1.direction.y == 0 then
+        thief1.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
+    end
+end
+-- Move thief2 randomly {#c0c}
+function thief2_movement()
+    -- Move thief2
+    thief2.pos.x = thief2.pos.x + thief2.direction.x * thief2.speed
+    thief2.pos.y = thief2.pos.y + thief2.direction.y * thief2.speed
+
+    -- Bounce off the walls
+    if thief2.pos.x <= 0 or thief2.pos.x >= 120 then
+        thief2.direction.x = thief2.direction.x * -1 -- Reverse horizontal direction
+    end
+
+    if thief2.pos.y <= 0 or thief2.pos.y >= 112 then
+        thief2.direction.y = thief2.direction.y * -1 -- Reverse vertical direction
+    end
+
+    --Prevent standstill {#c0c}
+    -- Check if both direction components are zero, and if so, set a default direction
+    if thief2.direction.x == 0 and thief2.direction.y == 0 then
+        thief2.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
     end
 end
 
--- Loop to ensure the thief doesn't move straight right, up, or down
-function ensure_thief_diagonal()
-    while thief.direction.x == 0 or thief.direction.y == 0 do
-        thief.direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}
+
+-- Loop to ensure the thief1 doesn't move straight right, up, or down
+function ensure_thief1_diagonal()
+    while thief1.direction.x == 0 or thief1.direction.y == 0 do
+        thief1.direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}
+    end
+end
+-- Loop to ensure the thief2 doesn't move straight right, up, or down
+function ensure_thief2_diagonal()
+    while thief2.direction.x == 0 or thief2.direction.y == 0 do
+        thief2.direction = {x = flr(rnd(3)) - 1, y = flr(rnd(3)) - 1}
     end
 end
 
--- Update thief animation
-function thief_animation()
-    -- Update thief animation frame {#c0c}
-        thief.animTimer = thief.animTimer + 1
-        if thief.animTimer >= thief.animSpeed then
-            thief.animTimer = 0
+
+-- Update thief1 animation
+function thief1_animation()
+    -- Update thief1 animation frame {#c0c}
+        thief1.animTimer = thief1.animTimer + 1
+        if thief1.animTimer >= thief1.animSpeed then
+            thief1.animTimer = 0
             -- Toggle frames between 1 and 2
-            if thief.currentFrame == 1 then
-                thief.currentFrame = 2
+            if thief1.currentFrame == 1 then
+                thief1.currentFrame = 2
             else
-                thief.currentFrame = 1
+                thief1.currentFrame = 1
+            end
+        end
+end
+-- Update thief2 animation
+function thief2_animation()
+    -- Update thief2 animation frame {#c0c}
+        thief2.animTimer = thief2.animTimer + 1
+        if thief2.animTimer >= thief2.animSpeed then
+            thief2.animTimer = 0
+            -- Toggle frames between 1 and 2
+            if thief2.currentFrame == 1 then
+                thief2.currentFrame = 2
+            else
+                thief2.currentFrame = 1
             end
         end
 end
 
--- Function for drawing thief {#c0c}
-function drawThief()
-    if thief.flip then
-        spr(thief.sprites[thief.currentFrame][1], thief.pos.x, thief.pos.y, 1, 1, true, false)
-        spr(thief.sprites[thief.currentFrame][2], thief.pos.x, thief.pos.y + 8, 1, 1, true, false)
+
+-- Function for drawing thief1 {#c0c}
+function draw_thief1()
+    if thief1.flip then
+        spr(thief1.sprites[thief1.currentFrame][1], thief1.pos.x, thief1.pos.y, 1, 1, true, false)
+        spr(thief1.sprites[thief1.currentFrame][2], thief1.pos.x, thief1.pos.y + 8, 1, 1, true, false)
     else
-        spr(thief.sprites[thief.currentFrame][1], thief.pos.x, thief.pos.y)
-        spr(thief.sprites[thief.currentFrame][2], thief.pos.x, thief.pos.y + 8)
+        spr(thief1.sprites[thief1.currentFrame][1], thief1.pos.x, thief1.pos.y)
+        spr(thief1.sprites[thief1.currentFrame][2], thief1.pos.x, thief1.pos.y + 8)
+    end
+end
+-- Function for drawing thief2 {#c0c}
+function draw_thief2()
+    if thief2.flip then
+        spr(thief2.sprites[thief2.currentFrame][1], thief2.pos.x, thief2.pos.y, 1, 1, true, false)
+        spr(thief2.sprites[thief2.currentFrame][2], thief2.pos.x, thief2.pos.y + 8, 1, 1, true, false)
+    else
+        spr(thief2.sprites[thief2.currentFrame][1], thief2.pos.x, thief2.pos.y)
+        spr(thief2.sprites[thief2.currentFrame][2], thief2.pos.x, thief2.pos.y + 8)
     end
 end
 
---Print HUD on screen
-function hud()
-    print(gameTimer,50,10,7)
-    print("score " ..score,50,20,7)
-    --print(time(),50,10,7)
-    --print("# of bones: " ..#bones,50,20,7)
-end
 
---Timer for end of game
-function countdown()
-    gameTimer = gameTimer - 0.05
-end
 
 -->8
 -- bone functions
 
--- Check if it's time to spawn a new bone and do it{#fff}
+-- Next 2 functions: check if it's time to spawn a new bone and do it{#fff}
 
 -- How to spawn a new bone into the bone table
 function spawnBone()
@@ -196,7 +271,7 @@ function spawnBone()
     if #bones < bones.max then
         -- Spawn a new bone at a random location and set it to active = true
         bones[#bones + 1] = {
-            pos = {x = rnd(120), y = rnd(120)}, -- random spawn position
+            pos = {x = rnd(120), y = rnd(110)}, -- random spawn position
             --x = rnd(120),
             --y = rnd(120),
             width = 8,
@@ -214,8 +289,8 @@ end
 
 -- Spawn a bone after time elapses if under 10 bones
 function spawn_new_bone()
-    if elapsedTime >= bones.spawn_interval then
-        elapsedTime = 0
+    if elapsed_bone_time >= bones.spawn_interval then
+        elapsed_bone_time = 0
         spawnBone()
     end
 end
@@ -247,16 +322,90 @@ end
 
 function draw_poop()
     if poop2.pos.x == poop1.pos.x and poop2.pos.y == poop1.pos.y then
-        poop2.pos.x = flr(rnd(90) + 20)
-        poop2.pos.y = flr(rnd(90) + 20)
+        poop2.pos.x = flr(rnd(60) + 20)
+        poop2.pos.y = flr(rnd(60) + 20)
+        -- Update previous poop positions
+        prev_poop1_pos = {x = poop1.pos.x, y = poop1.pos.y}
+        prev_poop2_pos = {x = poop2.pos.x, y = poop2.pos.y}
     end
     spr(4, poop1.pos.x, poop1.pos.y)
     spr(4, poop2.pos.x, poop2.pos.y)
 end
 
-function poop_change()
 
+function poop_change()
+    if time_left < 89 and poop_announcement == 0 then
+        --poop1.pos = {x = 40, y = rnd((60 + 40))}
+        --poop2.pos = {x = 85, y = rnd((60 + 40))}
+        poop_announcement = 1
+    elseif time_left < 60 and poop_announcement == 1 then
+        poop1.pos = {x = 40, y = rnd((60 + 30))}
+        poop2.pos = {x = 85, y = rnd((60 + 30))}
+        poop_announcement = 2
+    elseif time_left < 30 and poop_announcement == 2 then
+        poop1.pos = {x = 40, y = rnd((60 + 30))}
+        poop2.pos = {x = 85, y = rnd((60 + 30))}
+        poop_announcement = 3
+    end
 end
+
+
+
+function emergency_poop_jump()
+    collision_detected = false
+
+    if checkcollision(thief1, poop1) or checkcollision(thief1, poop2) or
+       checkcollision(thief2, poop1) or checkcollision(thief2, poop2) then
+        collision_detected = true
+        unstuck_timer = unstuck_timer + 1
+        if unstuck_timer > 7 then
+            if checkcollision(thief1, poop1) then
+                thief1.pos.x = thief1.pos.x + 10
+            elseif checkcollision(thief1, poop2) then
+                thief1.pos.x = thief1.pos.x + 10
+            elseif checkcollision(thief2, poop1) then
+                thief2.pos.x = thief2.pos.x + 10
+            elseif checkcollision(thief2, poop2) then
+                thief2.pos.x = thief2.pos.x + 10
+            end
+            unstuck_timer = 0
+        end
+    end
+
+-- This timer counts up all the time.
+-- If it ever reaches 5 frames with no collision between any poops and thieves, it resets the unstuck_timer to zero.
+-- This prevents a bug where after every 7 collisions between thieves and poop, they get teleported 10 pixels
+-- (this bug was introduced with the upper part of the emergency_poop_jump function.)
+-- (previously, the unstuck timer would only be set back to 0 when a thief made the emergency jump)
+    if not collision_detected then
+        no_collision_frames = no_collision_frames + 1
+        if no_collision_frames > 5 then
+            unstuck_timer = 0
+            no_collision_frames = 0
+        end
+    else
+        no_collision_frames = 0
+    end
+end
+
+
+
+function poop_announce()
+    poop_flash_timer = poop_flash_timer + 1
+
+    if poop_flash_timer % 9 == 0 then
+        show_poop_text = not show_poop_text
+    end
+
+    if (time_left < 62 and poop_announcement == 1) or (time_left < 32 and poop_announcement == 2) then
+        if show_poop_text then
+            print("poop change!", 40, 0, 7)
+        end
+    else
+        show_poop_text = false -- Ensure text is not displayed after the intended duration
+    end
+end
+
 
 -->8
 -- collision functions
@@ -270,12 +419,18 @@ function checkcollision(obj1, obj2)
     return true
 end
 
---Check collision between thief and bonk {#c0c}
-function collision_bonk_thief()
-    if checkcollision(bonk, thief) then
+--Check collision between thieves and bonk {#c0c}
+function collision_bonk_thief1()
+    if checkcollision(bonk, thief1) then
             sfx(03)
     end
 end
+function collision_bonk_thief2()
+    if checkcollision(bonk, thief2) then
+            sfx(03)
+    end
+end
+
 
 -- check collision between bonk and bones
 function collision_bonk_bone()
@@ -290,15 +445,24 @@ function collision_bonk_bone()
     end
 end
 
+-- check collision between thieves and poop
 -- statt -1 könnte es ein random-wert sein, von -0,8 bis 1,2
-
-function collision_thief_poop()
-    if checkcollision(thief, poop1) then
-        thief.direction = {x = thief.direction.x * -1, y = thief.direction.y * -1}
+function collision_thief1_poop()
+    if checkcollision(thief1, poop1) then
+        thief1.direction = {x = thief1.direction.x * -1, y = thief1.direction.y * -1}
     end
 
-    if checkcollision(thief, poop2) then
-        thief.direction = {x = thief.direction.x * -1, y = thief.direction.y * -1}
+    if checkcollision(thief1, poop2) then
+        thief1.direction = {x = thief1.direction.x * -1, y = thief1.direction.y * -1}
+    end
+end
+function collision_thief2_poop()
+    if checkcollision(thief2, poop1) then
+        thief2.direction = {x = thief2.direction.x * -1, y = thief2.direction.y * -1}
+    end
+
+    if checkcollision(thief2, poop2) then
+        thief2.direction = {x = thief2.direction.x * -1, y = thief2.direction.y * -1}
     end
 end
 
@@ -307,29 +471,76 @@ end
 -- Other functions
 
 -- Increase overall timer {#fff}
-function game_timer()
-    elapsedTime = elapsedTime + 1  -- Increment elapsed time by 1 frame
+function bone_timer()
+    elapsed_bone_time = elapsed_bone_time + 1  -- Increment elapsed time every 1 frame
 end
 
+function poop_timer()
+    elapsed_poop_time = elapsed_poop_time + 1  -- Increment elapsed time every 1 frame
+end
+
+function countdown()
+    time_left = time_left - 1/30
+end
+
+--Print HUD on screen
+function hud()
+    print(flr(time_left),10,0,7)
+    print("score " ..score,95,0,7)
+    --print(time(),50,10,7)
+    --print("# of bones: " ..#bones,50,20,7)
+end
+
+function end_game()
+    if time_left < 0 then
+        cls(0)
+        print("score: " ..score,46,60,7)
+        spr(16,56,70)
+
+        if score > 20 and score_sound_played == false then
+            sfx(7)
+            score_sound_played = true
+        elseif score < 20 and score_sound_played == false then
+            sfx(8)
+            score_sound_played = true
+        end
+
+        
+    end
+end
 
 
 -->8
 --update
 
 function _update()
---    if not gameTimer == 0 then
+    if time_left > 0 then
+        bone_timer()
+        poop_timer()
         countdown()
-        game_timer()
+
         bonk_movement()
-        thief_movement()
-        --ensure_thief_diagonal()
-        thief_animation()
-        collision_bonk_thief()
-        collision_thief_poop()
+
+        thief1_movement()
+        thief2_movement()
+        ensure_thief1_diagonal()
+        ensure_thief2_diagonal()
+        thief1_animation()
+        thief2_animation()
+        
+        collision_bonk_thief1()
+        collision_bonk_thief2()
+        collision_thief1_poop()
+        collision_thief2_poop()
         collision_bonk_bone()
+        
         spawn_new_bone()
         bone_animation()
---    end
+
+        poop_change()
+        emergency_poop_jump()
+    end
+
 end
 
 
@@ -340,11 +551,19 @@ end
 function _draw()
     cls(0)
     map(0, 0, 0, 0, 16, 16)
+    rectfill(0, 0, 127, 5, 0)  -- Draws a black rectangle at the top of the screen (128x4)
     draw_poop()
     hud()
+
+    poop_announce()
+
     draw_bones()
     drawBonk()
-    drawThief()
+    draw_thief1()
+    draw_thief2()
+
+    end_game()
+
 end
 
 -- map(screen_x, screen_y, map_x, map_y, width, height)
