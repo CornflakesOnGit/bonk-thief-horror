@@ -467,6 +467,29 @@ function collision_thief2_poop()
 end
 
 
+-- check collision between thieves and bones
+function collision_thief1_bone()
+    if #bones > 0 then
+        for i = 1, #bones do
+            if bones[i] and bones[i].active and checkcollision(thief1, bones[i]) then
+                sfx(02)
+                deli(bones, i)
+            end
+        end
+    end
+end
+
+function collision_thief2_bone()
+    if #bones > 0 then
+        for i = 1, #bones do
+            if bones[i] and bones[i].active and checkcollision(thief2, bones[i]) then
+                sfx(02)
+                deli(bones, i)
+            end
+        end
+    end
+end
+
 -->8
 -- Other functions
 
@@ -528,11 +551,13 @@ function _update()
         thief1_animation()
         thief2_animation()
         
+        collision_bonk_bone()
         collision_bonk_thief1()
         collision_bonk_thief2()
         collision_thief1_poop()
         collision_thief2_poop()
-        collision_bonk_bone()
+        collision_thief1_bone()
+        collision_thief2_bone()
         
         spawn_new_bone()
         bone_animation()
