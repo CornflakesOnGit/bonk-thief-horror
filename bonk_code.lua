@@ -12,7 +12,7 @@ function _init()
     show_poop_text = true
 
 -- debugging my teleporting poop
-    unstuck_timer = 0
+    unstuck_counter = 0
     no_collision_frames = 0
 
     score_sound_played = false
@@ -357,8 +357,8 @@ function emergency_poop_jump()
     if checkcollision(thief1, poop1) or checkcollision(thief1, poop2) or
        checkcollision(thief2, poop1) or checkcollision(thief2, poop2) then
         collision_detected = true
-        unstuck_timer = unstuck_timer + 1
-        if unstuck_timer > 7 then
+        unstuck_counter = unstuck_counter + 1
+        if unstuck_counter > 7 then
             if checkcollision(thief1, poop1) then
                 thief1.pos.x = thief1.pos.x + 10
             elseif checkcollision(thief1, poop2) then
@@ -368,19 +368,19 @@ function emergency_poop_jump()
             elseif checkcollision(thief2, poop2) then
                 thief2.pos.x = thief2.pos.x + 10
             end
-            unstuck_timer = 0
+            unstuck_counter = 0
         end
     end
 
 -- This timer counts up all the time.
--- If it ever reaches 5 frames with no collision between any poops and thieves, it resets the unstuck_timer to zero.
+-- If it ever reaches 5 frames with no collision between any poops and thieves, it resets the unstuck_counter to zero.
 -- This prevents a bug where after every 7 collisions between thieves and poop, they get teleported 10 pixels
 -- (this bug was introduced with the upper part of the emergency_poop_jump function.)
 -- (previously, the unstuck timer would only be set back to 0 when a thief made the emergency jump)
     if not collision_detected then
         no_collision_frames = no_collision_frames + 1
         if no_collision_frames > 5 then
-            unstuck_timer = 0
+            unstuck_counter = 0
             no_collision_frames = 0
         end
     else
@@ -515,10 +515,10 @@ function hud()
 end
 
 function end_game()
-    if time_left < 0 then
+    if time_left < 89 then
         cls(0)
         print("score: " ..score,46,60,7)
-        spr(16,56,70)
+        spr(16,58,70)
 
         if score > 20 and score_sound_played == false then
             sfx(7)
