@@ -515,7 +515,7 @@ function hud()
 end
 
 function end_game()
-    if time_left < 89 then
+    if time_left < 0 then
         cls(0)
         print("score: " ..score,46,60,7)
         spr(16,58,70)
