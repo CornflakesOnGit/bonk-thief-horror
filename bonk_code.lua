@@ -1,9 +1,15 @@
 function _init()
     score = 0
 
+    life = 5
+    invincible = false
+    invincibility_timer = 20
+    invincibility_flash_timer = 1
+    show_bonk = true
+
     elapsed_bone_time = 0
     elapsed_poop_time = 0
-    time_left = 90
+    time_left = 62
 
     poop_announcement = 0
 
@@ -36,7 +42,7 @@ bonk = {
 
 
 thief1 = {
-    pos = {x = flr(rnd((24)+8)), y = flr(rnd((90 + 8)))}, -- Initial position of the character
+    pos = {x = flr(rnd((24)+8)), y = flr(rnd(90) + 8)}, -- Initial position of the character
     sprites = {
         {5, 21}, -- First animation frame
         {6, 22} -- Second animation frame
@@ -53,7 +59,7 @@ thief1 = {
 }
 
 thief2 = {
-    pos = {x = flr(rnd((24)+8)), y = flr(rnd((90 + 8)))}, -- Initial position of the character
+    pos = {x = flr(rnd((26)+94)), y = flr(rnd(90) + 8)}, -- Initial position of the character
     sprites = {
         {5, 21}, -- First animation frame
         {6, 22} -- Second animation frame
@@ -73,13 +79,13 @@ bones = {
 }
 
 poop1 = {
-    pos = {x = 20, y = 20},
+    pos = {x = 40, y = flr(rnd(91) + 20)}, -- Initial position of poop
     width = 8,
     height = 8,
 }
 
 poop2 = {
-    pos = {x = 85, y = flr(rnd((70 + 40)))}, -- Initial position of poop
+    pos = {x = 85, y = flr(rnd(91) + 20)}, -- Initial position of poop
     width = 8,
     height = 8,
 }
@@ -339,12 +345,12 @@ function poop_change()
         --poop2.pos = {x = 85, y = rnd((60 + 40))}
         poop_announcement = 1
     elseif time_left < 60 and poop_announcement == 1 then
-        poop1.pos = {x = 40, y = rnd((60 + 30))}
-        poop2.pos = {x = 85, y = rnd((60 + 30))}
+        poop1.pos = {x = 40, y = rnd((91) + 20)}
+        poop2.pos = {x = 85, y = rnd((91) + 20)}
         poop_announcement = 2
     elseif time_left < 30 and poop_announcement == 2 then
-        poop1.pos = {x = 40, y = rnd((60 + 30))}
-        poop2.pos = {x = 85, y = rnd((60 + 30))}
+        poop1.pos = {x = 40, y = rnd((91) + 20)}
+        poop2.pos = {x = 85, y = rnd((91) + 20)}
         poop_announcement = 3
     end
 end
@@ -423,12 +429,48 @@ end
 function collision_bonk_thief1()
     if checkcollision(bonk, thief1) then
             sfx(03)
+            if not invincible then
+            life = life - 1
+            invincible = true
+            end
     end
 end
+
+
+
 function collision_bonk_thief2()
     if checkcollision(bonk, thief2) then
             sfx(03)
+            if not invincible then
+            life = life - 1
+            invincible = true
+            end
     end
+end
+
+function invincibility()
+    if invincible then
+        invincibility_timer = invincibility_timer - 1
+        if invincibility_timer < 1 then
+            invincible = false
+            invincibility_timer = 20
+        end
+    end
+end
+
+function invincibility_flash()
+    if invincible then
+        invincibility_flash_timer = invincibility_flash_timer + 1
+    end 
+    
+    if invincibility_flash_timer % 3 == 0 then
+        show_bonk = not show_bonk
+    end
+
+    if invincibility_flash_timer > 19 then
+        show_bonk = true -- Ensure text is not displayed after the intended duration
+    end
+    invincibility_flash_timer = 1
 end
 
 
@@ -502,21 +544,51 @@ function poop_timer()
     elapsed_poop_time = elapsed_poop_time + 1  -- Increment elapsed time every 1 frame
 end
 
+
 function countdown()
     time_left = time_left - 1/30
 end
 
 --Print HUD on screen
 function hud()
-    print(flr(time_left),10,0,7)
-    print("score " ..score,95,0,7)
+    if not ((time_left >= 27 and time_left <= 30) or (time_left >= 57 and time_left <= 60)) then
+        print(flr(time_left), 59, 0, 7)
+    end
+    
+    --if time_left > 58 then
+    --    print(flr(time_left),59,0,7)
+    --if time_left > 30 and < 58 then
+    --    print(flr(time_left),59,0,7)
+    --else if time_left < 28 then
+    --    print(flr(time_left),59,0,7)
+    --end
+
+-- Remaining life
+    print(life,1,0,7)
+    spr(54,6,0)
+    spr(38,11,0)
+
+-- Bone score
+    if score < 10 then
+        print(score,109,0,7)
+    else
+        print(score,105,0,7)
+    end
+    spr(54,114,0)
+    spr(36,119,0)
+    
+    
+
+
+    --print(flr(invincibility_timer),20,0,7)
+    --print(invincible)
     --print(time(),50,10,7)
     --print("# of bones: " ..#bones,50,20,7)
 end
 
 function end_game()
-    if time_left < 0 then
-        cls(0)
+    if time_left < 0 or life == 0 then
+        cls(1)
         print("score: " ..score,46,60,7)
         spr(16,58,70)
 
@@ -537,7 +609,7 @@ end
 --update
 
 function _update()
-    if time_left > 0 then
+    if time_left > 0 or life > 1 then
         bone_timer()
         poop_timer()
         countdown()
@@ -559,6 +631,8 @@ function _update()
         collision_thief1_bone()
         collision_thief2_bone()
         
+        invincibility()
+
         spawn_new_bone()
         bone_animation()
 
@@ -583,10 +657,12 @@ function _draw()
     poop_announce()
 
     draw_bones()
-    drawBonk()
+    if show_bonk == true then
+        drawBonk()
+    end
+    invincibility_flash()
     draw_thief1()
     draw_thief2()
-
     end_game()
 
 end
