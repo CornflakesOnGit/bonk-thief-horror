@@ -9,7 +9,7 @@ function _init()
 
     elapsed_bone_time = 0
     elapsed_poop_time = 0
-    time_left = 62
+    time_left = 91
 
     poop_announcement = 0
 
@@ -136,11 +136,11 @@ function bonk_movement()
     end
 
     -- respawning from other side {#c81}
-    if bonk.pos.x < -4 then bonk.pos.x = 124
+        if bonk.pos.x < -4 then bonk.pos.x = 124
         elseif bonk.pos.x > 124 then bonk.pos.x = -4
-        elseif bonk.pos.y < -4 then bonk.pos.y = 124
-        elseif bonk.pos.y > 124 then bonk.pos.y = -4
-    end
+        elseif bonk.pos.y < 6 then bonk.pos.y = 124
+        elseif bonk.pos.y > 124 then bonk.pos.y = 6
+        end
 end
 
 -- Bonk change frame function {#c81,6}
@@ -166,7 +166,7 @@ function thief1_movement()
         thief1.direction.x = thief1.direction.x * -1 -- Reverse horizontal direction
     end
 
-    if thief1.pos.y <= 0 or thief1.pos.y >= 112 then
+    if thief1.pos.y <= 7 or thief1.pos.y >= 112 then
         thief1.direction.y = thief1.direction.y * -1 -- Reverse vertical direction
     end
 
@@ -187,7 +187,7 @@ function thief2_movement()
         thief2.direction.x = thief2.direction.x * -1 -- Reverse horizontal direction
     end
 
-    if thief2.pos.y <= 0 or thief2.pos.y >= 112 then
+    if thief2.pos.y <= 7 or thief2.pos.y >= 112 then
         thief2.direction.y = thief2.direction.y * -1 -- Reverse vertical direction
     end
 
@@ -461,16 +461,17 @@ end
 function invincibility_flash()
     if invincible then
         invincibility_flash_timer = invincibility_flash_timer + 1
-    end 
+    end
     
-    if invincibility_flash_timer % 3 == 0 then
-        show_bonk = not show_bonk
+    if invincibility_flash_timer % 2 == 0 then
+        show_bonk = false
     end
 
     if invincibility_flash_timer > 19 then
         show_bonk = true -- Ensure text is not displayed after the intended duration
+        invincibility_flash_timer = 1
     end
-    invincibility_flash_timer = 1
+
 end
 
 
@@ -533,7 +534,7 @@ function collision_thief2_bone()
 end
 
 -->8
--- Other functions
+-- Timer functions
 
 -- Increase overall timer {#fff}
 function bone_timer()
@@ -544,14 +545,13 @@ function poop_timer()
     elapsed_poop_time = elapsed_poop_time + 1  -- Increment elapsed time every 1 frame
 end
 
-
 function countdown()
     time_left = time_left - 1/30
 end
 
 --Print HUD on screen
 function hud()
-    if not ((time_left >= 27 and time_left <= 30) or (time_left >= 57 and time_left <= 60)) then
+    if (time_left > 0 and time_left < 30) or (time_left > 32 and time_left < 60) or (time_left > 62 and time_left < 91) then
         print(flr(time_left), 59, 0, 7)
     end
     
@@ -586,6 +586,9 @@ function hud()
     --print("# of bones: " ..#bones,50,20,7)
 end
 
+-->8
+--Other functions
+
 function end_game()
     if time_left < 0 or life == 0 then
         cls(1)
@@ -604,42 +607,52 @@ function end_game()
     end
 end
 
+function negative_life_debug()
+    if life == -1 then
+        life = 0
+    end
+end
 
 -->8
 --update
 
 function _update()
-    if time_left > 0 or life > 1 then
-        bone_timer()
-        poop_timer()
-        countdown()
+    if life > 0 then
+        if time_left > 0 then
+            
+            bone_timer()
+            poop_timer()
+            countdown()
 
-        bonk_movement()
+            bonk_movement()
 
-        thief1_movement()
-        thief2_movement()
-        ensure_thief1_diagonal()
-        ensure_thief2_diagonal()
-        thief1_animation()
-        thief2_animation()
-        
-        collision_bonk_bone()
-        collision_bonk_thief1()
-        collision_bonk_thief2()
-        collision_thief1_poop()
-        collision_thief2_poop()
-        collision_thief1_bone()
-        collision_thief2_bone()
-        
-        invincibility()
+            thief1_movement()
+            thief2_movement()
+            ensure_thief1_diagonal()
+            ensure_thief2_diagonal()
+            thief1_animation()
+            thief2_animation()
+            
+            collision_bonk_bone()
+            collision_bonk_thief1()
+            collision_bonk_thief2()
+            collision_thief1_poop()
+            collision_thief2_poop()
+            collision_thief1_bone()
+            collision_thief2_bone()
+            
+            invincibility()
+            invincibility_flash()
 
-        spawn_new_bone()
-        bone_animation()
+            spawn_new_bone()
+            bone_animation()
 
-        poop_change()
-        emergency_poop_jump()
+            poop_change()
+            emergency_poop_jump()
+
+            negative_life_debug()
+        end
     end
-
 end
 
 
@@ -660,7 +673,9 @@ function _draw()
     if show_bonk == true then
         drawBonk()
     end
+    -- I'm calling this funciton here again to increase flashing speed
     invincibility_flash()
+
     draw_thief1()
     draw_thief2()
     end_game()
