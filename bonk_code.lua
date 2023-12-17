@@ -7,6 +7,11 @@ function _init()
     invincibility_flash_timer = 1
     show_bonk = true
 
+
+    transformation_sound_playing = false
+    transformation_sound_counter = 0
+
+
     elapsed_bone_time = 0
     elapsed_poop_time = 0
     time_left = 91
@@ -14,7 +19,7 @@ function _init()
     poop_announcement = 0
 
     stolen_bones = 10
-    transformation_in_progress = false
+
     super_bonk_active = false
 
 -- for flashing text
@@ -677,6 +682,7 @@ function collision_bonk_super_bone()
         super_bone.collected = true
         bonk.pos.x = 150
         bonk.pos.y = 150
+        transform_bonk_sound()
     end
 end
 
@@ -780,6 +786,25 @@ function hud()
     --print("# of bones: " ..#bones,50,20,7)
 end
 
+
+-->8
+--Sound events
+
+function transform_bonk_sound()
+    transformation_sound_playing = true
+    sfx(13)
+end
+
+function end_transformation_process()
+    if transformation_sound_playing == true then 
+        transformation_sound_counter = transformation_sound_counter + 1
+
+        if transformation_sound_counter > 73 then
+            transformation_sound_playing = false
+        end
+    end
+end
+
 -->8
 --Other functions
 
@@ -813,43 +838,45 @@ end
 function _update()
     if life > 0 then
         if time_left > 0 then
-            
-            bone_timer()
-            poop_timer()
-            countdown()
+            end_transformation_process()
+                if not transformation_sound_playing then
+                    bone_timer()
+                    poop_timer()
+                    countdown()
 
-            bonk_movement()
+                    bonk_movement()
 
-            thief1_movement()
-            thief2_movement()
-            ensure_thief1_diagonal()
-            ensure_thief2_diagonal()
-            thief1_animation()
-            thief2_animation()
-            
-            collision_bonk_bone()
-            collision_bonk_super_bone()
+                    thief1_movement()
+                    thief2_movement()
+                    ensure_thief1_diagonal()
+                    ensure_thief2_diagonal()
+                    thief1_animation()
+                    thief2_animation()
+                    
+                    collision_bonk_bone()
+                    collision_bonk_super_bone()
 
-            collision_bonk_thief1()
-            collision_bonk_thief2()
-            collision_thief1_poop()
-            collision_thief2_poop()
-            collision_thief1_bone()
-            collision_thief2_bone()
-            
-            invincibility()
-            invincibility_flash()
+                    collision_bonk_thief1()
+                    collision_bonk_thief2()
+                    collision_thief1_poop()
+                    collision_thief2_poop()
+                    collision_thief1_bone()
+                    collision_thief2_bone()
+                    
+                    invincibility()
+                    invincibility_flash()
 
-            spawn_new_bone()
-            bone_animation()
+                    spawn_new_bone()
+                    bone_animation()
 
-            spawn_super_bone()
-            super_bone_animation()
+                    spawn_super_bone()
+                    super_bone_animation()
 
-            poop_change()
-            emergency_poop_jump()
+                    poop_change()
+                    emergency_poop_jump()
 
-            negative_life_debug()
+                    negative_life_debug()
+            end
         end
     end
 end
