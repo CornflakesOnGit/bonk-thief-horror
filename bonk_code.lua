@@ -7,10 +7,14 @@ function _init()
     invincibility_flash_timer = 1
     show_bonk = true
 
-
-    transformation_sound_playing = false
-    transformation_sound_counter = 0
-
+    transformation_in_progress = false
+    transformation_end_counter = 0
+    transformation_animation_threshold_1 = 5
+    transformation_animation_threshold_2 = 10
+    transformation_animation_counter = 0
+    draw_new_form = true
+    bonk_offscreen = false
+    transformation_sound_played = false
 
     elapsed_bone_time = 0
     elapsed_poop_time = 0
@@ -651,7 +655,7 @@ function invincibility_flash()
     end
 
     if invincibility_flash_timer > 19 then
-        show_bonk = true -- Ensure text is not displayed after the intended duration
+        show_bonk = true
         invincibility_flash_timer = 1
     end
 
@@ -680,9 +684,11 @@ function collision_bonk_super_bone()
         super_bonk.pos.x = bonk.pos.x
         super_bonk.pos.y = bonk.pos.y
         super_bone.collected = true
-        bonk.pos.x = 150
-        bonk.pos.y = 150
-        transform_bonk_sound()
+        transformation_in_progress = true
+        if transformation_sound_played == false then
+            sfx(13)
+            transformation_sound_played = true
+        end
     end
 end
 
@@ -788,20 +794,40 @@ end
 
 
 -->8
---Sound events
+--Transformation event
 
-function transform_bonk_sound()
-    transformation_sound_playing = true
-    sfx(13)
+
+function transform_bonk_animation()
+    if transformation_in_progress then
+        transformation_animation_counter = transformation_animation_counter + 1
+
+        if transformation_animation_counter > transformation_animation_threshold_1 then
+            draw_new_form = true
+        end
+
+        if transformation_animation_counter > transformation_animation_threshold_2 then
+            draw_new_form = false
+            transformation_animation_counter = 0
+        end
+    end
 end
 
-function end_transformation_process()
-    if transformation_sound_playing == true then 
-        transformation_sound_counter = transformation_sound_counter + 1
 
-        if transformation_sound_counter > 73 then
-            transformation_sound_playing = false
+function end_transformation_process()
+    if transformation_in_progress == true then 
+        transformation_end_counter = transformation_end_counter + 1
+
+        if transformation_end_counter > 73 then
+            transformation_in_progress = false
+            bonk_offscreen = true
         end
+    end
+end
+
+function get_rid_of_bonk()
+    if bonk_offscreen == true then
+        bonk.pos.x = -20
+        bonk.pos.y = -20
     end
 end
 
@@ -839,7 +865,9 @@ function _update()
     if life > 0 then
         if time_left > 0 then
             end_transformation_process()
-                if not transformation_sound_playing then
+            transform_bonk_animation()
+            get_rid_of_bonk()
+                if not transformation_in_progress then
                     bone_timer()
                     poop_timer()
                     countdown()
@@ -899,10 +927,19 @@ function _draw()
     draw_super_bone()
     
     if super_bonk_active == true then
-        draw_super_bonk()
+        if transformation_in_progress then
+            if draw_new_form == true then
+                draw_super_bonk()
+            else
+                draw_bonk()
+            end
+        else
+            draw_super_bonk()
+        end
     elseif show_bonk == true then
         draw_bonk()
     end
+    
     
     -- I'm calling this funciton here again to increase flashing speed
     invincibility_flash()
@@ -914,7 +951,6 @@ function _draw()
 end
 
 -- map(screen_x, screen_y, map_x, map_y, width, height)
-
 -- screen_x: The x-coordinate on the screen where the map drawing starts
 -- screen_y: The y-coordinate on the screen where the map drawing starts
 -- map_x: The x-coordinate in the map data where drawing starts
