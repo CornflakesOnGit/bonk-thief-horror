@@ -16,6 +16,10 @@ function _init()
     bonk_offscreen = false
     transformation_sound_played = false
 
+    square_counter = 0
+    bonking_in_progress = false
+
+
     elapsed_bone_time = 0
     elapsed_poop_time = 0
     time_left = 91
@@ -196,7 +200,7 @@ function draw_super_bonk()
     end
 end
 
--- movement and animation updates {#c81}
+-- movement for bonk AND super_bonk {#c81}
 function bonk_movement()
     if super_bonk_active == false then
 
@@ -315,44 +319,72 @@ end
 
 -- Move thief1 randomly {#c0c}
 function thief1_movement()
-    -- Move thief1
-    thief1.pos.x = thief1.pos.x + thief1.direction.x * thief1.speed
-    thief1.pos.y = thief1.pos.y + thief1.direction.y * thief1.speed
+   
+    if super_bonk_active == true then 
+    
+        thief1.pos.x = thief1.pos.x + 3
+        if thief1.pos.x < -4 then thief1.pos.x = 124
+        elseif thief1.pos.x > 124 then thief1.pos.x = -4
+        end
+    
 
-    -- Bounce off the walls
-    if thief1.pos.x <= 0 or thief1.pos.x >= 120 then
-        thief1.direction.x = thief1.direction.x * -1 -- Reverse horizontal direction
+    else
+        -- Move thief1 (regular)
+        thief1.pos.x = thief1.pos.x + thief1.direction.x * thief1.speed
+        thief1.pos.y = thief1.pos.y + thief1.direction.y * thief1.speed
+
+
+            -- Bounce off the walls (regular)
+            if thief1.pos.x <= 0 or thief1.pos.x >= 120 then
+                thief1.direction.x = thief1.direction.x * -1 -- Reverse horizontal direction
+            end
+
+            if thief1.pos.y <= 7 or thief1.pos.y >= 112 then
+                thief1.direction.y = thief1.direction.y * -1 -- Reverse vertical direction
+            end
     end
 
-    if thief1.pos.y <= 7 or thief1.pos.y >= 112 then
-        thief1.direction.y = thief1.direction.y * -1 -- Reverse vertical direction
-    end
 
-    --Prevent standstill {#c0c}
-    -- Check if both direction components are zero, and if so, set a default direction
-    if thief1.direction.x == 0 and thief1.direction.y == 0 then
-        thief1.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
-    end
+        --Prevent standstill {#c0c}
+        -- Check if both direction components are zero, and if so, set a default direction
+        if thief1.direction.x == 0 and thief1.direction.y == 0 then
+            thief1.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
+        end
 end
+
+
 -- Move thief2 randomly {#c0c}
 function thief2_movement()
-    -- Move thief2
-    thief2.pos.x = thief2.pos.x + thief2.direction.x * thief2.speed
-    thief2.pos.y = thief2.pos.y + thief2.direction.y * thief2.speed
+   
+    if super_bonk_active == true then 
+    
+        thief2.pos.x = thief2.pos.x - 3
+        if thief2.pos.x < -4 then thief2.pos.x = 124
+        elseif thief2.pos.x > 124 then thief2.pos.x = -4
+        end
+    
 
-    -- Bounce off the walls
-    if thief2.pos.x <= 0 or thief2.pos.x >= 120 then
-        thief2.direction.x = thief2.direction.x * -1 -- Reverse horizontal direction
-    end
+    else
+        -- Move thief2 (regular)
+        thief2.pos.x = thief2.pos.x + thief2.direction.x * thief2.speed
+        thief2.pos.y = thief2.pos.y + thief2.direction.y * thief2.speed
 
-    if thief2.pos.y <= 7 or thief2.pos.y >= 112 then
-        thief2.direction.y = thief2.direction.y * -1 -- Reverse vertical direction
-    end
 
-    --Prevent standstill {#c0c}
-    -- Check if both direction components are zero, and if so, set a default direction
-    if thief2.direction.x == 0 and thief2.direction.y == 0 then
-        thief2.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
+
+            -- Bounce off the walls (regular)
+            if thief2.pos.x <= 0 or thief2.pos.x >= 120 then
+                thief2.direction.x = thief2.direction.x * -1 -- Reverse horizontal direction
+            end
+
+            if thief2.pos.y <= 7 or thief2.pos.y >= 112 then
+                thief2.direction.y = thief2.direction.y * -1 -- Reverse vertical direction
+            end
+
+        --Prevent standstill {#c0c}
+        -- Check if both direction components are zero, and if so, set a default direction
+        if thief2.direction.x == 0 and thief2.direction.y == 0 then
+            thief2.direction = {x = 1, y = 1} -- If both are zero, default to (1, 1)
+        end
     end
 end
 
@@ -404,13 +436,29 @@ end
 -- Function for drawing thief1 {#c0c}
 function draw_thief1()
     if thief1.flip then
-        spr(thief1.sprites[thief1.currentFrame][1], thief1.pos.x, thief1.pos.y, 1, 1, true, false)
-        spr(thief1.sprites[thief1.currentFrame][2], thief1.pos.x, thief1.pos.y + 8, 1, 1, true, false)
-    else
-        spr(thief1.sprites[thief1.currentFrame][1], thief1.pos.x, thief1.pos.y)
-        spr(thief1.sprites[thief1.currentFrame][2], thief1.pos.x, thief1.pos.y + 8)
+            spr(thief1.sprites[thief1.currentFrame][1], thief1.pos.x, thief1.pos.y, 1, 1, true, false)
+            spr(thief1.sprites[thief1.currentFrame][2], thief1.pos.x, thief1.pos.y + 8, 1, 1, true, false)
+        else
+            spr(thief1.sprites[thief1.currentFrame][1], thief1.pos.x, thief1.pos.y)
+            spr(thief1.sprites[thief1.currentFrame][2], thief1.pos.x, thief1.pos.y + 8)
     end
 end
+
+function update_thief_face()
+    if super_bonk_active == true then
+        thief1.sprites = {
+            {11, 21}, -- First animation frame
+            {12, 22} -- Second animation frame
+        }
+    
+    else     thief1.sprites = {
+        {5, 21}, -- First animation frame
+        {6, 22} -- Second animation frame
+    }
+
+    end
+end
+
 -- Function for drawing thief2 {#c0c}
 function draw_thief2()
     if thief2.flip then
@@ -422,6 +470,20 @@ function draw_thief2()
     end
 end
 
+function update_thief_face2()
+    if super_bonk_active == true then
+        thief2.sprites = {
+            {11, 21}, -- First animation frame
+            {12, 22} -- Second animation frame
+        }
+    
+    else     thief2.sprites = {
+        {5, 21}, -- First animation frame
+        {6, 22} -- Second animation frame
+    }
+
+    end
+end
 
 
 -->8
@@ -625,6 +687,30 @@ function collision_bonk_thief1()
     end
 end
 
+function collision_super_bonk_thief1()
+    if checkcollision(super_bonk, thief1) then
+        sfx(16)
+
+        bonking_in_progress = true
+        thief1.pos = {x = 64, y = 64}
+        super_bonk.pos = {x = 50, y = 56}
+        super_bonk.flip = false
+
+    end
+end
+
+function collision_super_bonk_thief2()
+    if checkcollision(super_bonk, thief2) then
+        sfx(16)
+
+        bonking_in_progress = true
+        thief2.pos = {x = 64, y = 64}
+        super_bonk.pos = {x = 50, y = 56}
+        super_bonk.flip = false
+
+    end
+end
+
 function collision_bonk_thief2()
     if checkcollision(bonk, thief2) then
             sfx(03)
@@ -684,6 +770,8 @@ function collision_bonk_super_bone()
         super_bonk.pos.x = bonk.pos.x
         super_bonk.pos.y = bonk.pos.y
         super_bone.collected = true
+        thief1.pos = {x = 3, y = 8}
+        thief2.pos = {x = 118, y = 8}
         transformation_in_progress = true
         if transformation_sound_played == false then
             sfx(13)
@@ -867,44 +955,53 @@ function _update()
             end_transformation_process()
             transform_bonk_animation()
             get_rid_of_bonk()
-                if not transformation_in_progress then
-                    bone_timer()
-                    poop_timer()
-                    countdown()
+            update_thief_face()
+            update_thief_face2()
+            if not transformation_in_progress then
+                    if not bonking_in_progress then
 
-                    bonk_movement()
+                            bone_timer()
+                            poop_timer()
+                            countdown()
 
-                    thief1_movement()
-                    thief2_movement()
-                    ensure_thief1_diagonal()
-                    ensure_thief2_diagonal()
-                    thief1_animation()
-                    thief2_animation()
-                    
-                    collision_bonk_bone()
-                    collision_bonk_super_bone()
+                            bonk_movement()
 
-                    collision_bonk_thief1()
-                    collision_bonk_thief2()
-                    collision_thief1_poop()
-                    collision_thief2_poop()
-                    collision_thief1_bone()
-                    collision_thief2_bone()
-                    
-                    invincibility()
-                    invincibility_flash()
+                            thief1_movement()
+                            thief2_movement()
+                            ensure_thief1_diagonal()
+                            ensure_thief2_diagonal()
+                            thief1_animation()
+                            thief2_animation()
+                            
+                            collision_bonk_bone()
+                            collision_bonk_super_bone()
 
-                    spawn_new_bone()
-                    bone_animation()
+                            collision_bonk_thief1()
+                            collision_bonk_thief2()
+                            collision_thief1_poop()
+                            collision_thief2_poop()
+                            collision_thief1_bone()
+                            collision_thief2_bone()
+                            
+                            collision_super_bonk_thief1()
+                            collision_super_bonk_thief2()
+                            
+                            invincibility()
+                            invincibility_flash()
 
-                    spawn_super_bone()
-                    super_bone_animation()
+                            spawn_new_bone()
+                            bone_animation()
 
-                    poop_change()
-                    emergency_poop_jump()
+                            spawn_super_bone()
+                            super_bone_animation()
 
-                    negative_life_debug()
-            end
+                            poop_change()
+                            emergency_poop_jump()
+
+                            negative_life_debug()
+
+                    end
+                end
         end
     end
 end
@@ -917,6 +1014,7 @@ end
 function _draw()
     cls(0)
     map(0, 0, 0, 0, 16, 16)
+    print(square_counter, 50,50,7)
     rectfill(0, 0, 127, 5, 0)  -- Draws a black rectangle at the top of the screen (128x4)
     draw_poop()
     hud()
