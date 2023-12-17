@@ -13,6 +13,10 @@ function _init()
 
     poop_announcement = 0
 
+    stolen_bones = 10
+    transformation_in_progress = false
+    super_bonk_active = false
+
 -- for flashing text
     poop_flash_timer = 0
     show_poop_text = true
@@ -39,6 +43,34 @@ bonk = {
     speed = 1,
     flip = false,
 }
+
+super_bonk = {
+    pos = {x = 200, y = 200}, -- super_bonk starts off offscreen
+    sprites = {
+        head = { -- Head sprite data for different frames
+            {id = 3, width = 8, height = 8},
+            {id = 10, width = 8, height = 8},
+        },
+        torso = {id = 19, width = 8, height = 8},
+        club = {id = 20, width = 8, height = 8},
+        legs = { -- Legs sprite data for different frames
+            {id = 35, width = 8, height = 8}, -- Frame 1
+            {id = 18, width = 8, height = 8}, -- Frame 2
+            {id = 34, width = 8, height = 8}, -- Frame 3
+        }
+
+    },
+    current_legs_frame = 1, -- Current frame for the limb animation
+    current_head_frame = 1, -- Current frame for the head animation
+    width = 8,
+    height = 24,
+    currentFrame = 1,
+    anim_counter = 0,
+    anim_speed = 5,
+    speed = 3,
+    flip = false,
+}
+
 
 
 thief1 = {
@@ -78,6 +110,22 @@ bones = {
     spawn_interval = 70, --this number refers to frames that have been drawn
 }
 
+super_bone = {
+            pos = {x = 140, y = 140},
+            width = 16,
+            height = 6,
+            spawned = false,
+            collected = false,
+            sprites = {   
+                {40, 41},
+                {56, 57},
+            },
+            currentFrame = 1,
+            anim_counter = 0,
+            anim_speed = 20, --every 20 frames the animation updates to next frame
+
+}
+
 poop1 = {
     pos = {x = 40, y = flr(rnd(91) + 20)}, -- Initial position of poop
     width = 8,
@@ -95,7 +143,7 @@ poop2 = {
 
 
 -- Function for drawing bonk {#c81}
-function drawBonk()
+function draw_bonk()
     if bonk.flip then
         spr(bonk.sprites[bonk.currentFrame], bonk.pos.x, bonk.pos.y, 1, 1, true, false)
     else
@@ -103,44 +151,122 @@ function drawBonk()
     end
 end
 
--- movement and animation updates {#c81}
-function bonk_movement()
-    p_moved = false
-    if btn(0) then 
-        bonk.pos.x = bonk.pos.x - bonk.speed
-        bonk.flip = true
-        p_moved = true
-        bonk.anim_counter = bonk.anim_counter + 1
+function draw_super_bonk()
+
+    -- Draw torso
+    if super_bonk.flip == false then
+        spr(super_bonk.sprites.torso.id, super_bonk.pos.x, super_bonk.pos.y + super_bonk.sprites.head[1].height, 1, 1, false, false)
+    else
+        spr(super_bonk.sprites.torso.id, super_bonk.pos.x, super_bonk.pos.y + super_bonk.sprites.head[1].height, 1, 1, true, false)
     end
-    if btn(1) then
-        bonk.pos.x = bonk.pos.x + bonk.speed
-        bonk.flip = false
-        p_moved = true
-        bonk.anim_counter = bonk.anim_counter + 1
-    end
-    if btn(2) then
-        bonk.pos.y = bonk.pos.y - bonk.speed
-        p_moved = true
-        bonk.anim_counter = bonk.anim_counter + 1
-    end
-    if btn(3) then
-        bonk.pos.y = bonk.pos.y + bonk.speed
-        p_moved = true
-        bonk.anim_counter = bonk.anim_counter + 1
-    end
-    if p_moved then
-        if bonk.anim_counter >= 5 then
-            bonk_animation()
-            bonk.anim_counter = 0
-        end
+    
+    -- Draw club (the position does not change, only what's drawn)
+    if super_bonk.flip == false then
+       spr(super_bonk.sprites.club.id, super_bonk.pos.x + super_bonk.sprites.head[1].width, super_bonk.pos.y + super_bonk.sprites.head[1].height, 1, 1, false, false)
+    else
+        spr(super_bonk.sprites.club.id, super_bonk.pos.x - super_bonk.sprites.head[1].width, super_bonk.pos.y + super_bonk.sprites.head[1].height, 1, 1, true, false)
     end
 
-    -- respawning from other side {#c81}
-        if bonk.pos.x < -4 then bonk.pos.x = 124
-        elseif bonk.pos.x > 124 then bonk.pos.x = -4
-        elseif bonk.pos.y < 6 then bonk.pos.y = 124
-        elseif bonk.pos.y > 124 then bonk.pos.y = 6
+    -- Find current legs frame
+    current_legs = super_bonk.sprites.legs[super_bonk.current_legs_frame]
+    
+    if super_bonk.flip == false then
+        spr(super_bonk.sprites.legs[super_bonk.current_legs_frame].id, super_bonk.pos.x, super_bonk.pos.y + super_bonk.sprites.head[1].height + super_bonk.sprites.torso.height, 1, 1, false, false) -- Draw legs
+    else
+        spr(super_bonk.sprites.legs[super_bonk.current_legs_frame].id, super_bonk.pos.x, super_bonk.pos.y + super_bonk.sprites.head[1].height + super_bonk.sprites.torso.height, 1, 1, true, false) -- Draw legs flipped
+    end
+
+    -- Find current head frame
+    current_head = super_bonk.sprites.head[super_bonk.current_head_frame]
+
+    -- Draw head
+    if super_bonk.flip == false then
+        spr(super_bonk.sprites.head[super_bonk.current_head_frame].id, super_bonk.pos.x, super_bonk.pos.y, 1, 1, false, false) -- Draw head
+    else
+        spr(super_bonk.sprites.head[super_bonk.current_head_frame].id, super_bonk.pos.x, super_bonk.pos.y, 1, 1, true, false) -- Draw head flipped
+    end
+end
+
+-- movement and animation updates {#c81}
+function bonk_movement()
+    if super_bonk_active == false then
+
+        p_moved = false
+        if btn(0) then 
+            bonk.pos.x = bonk.pos.x - bonk.speed
+            bonk.flip = true
+            p_moved = true
+            bonk.anim_counter = bonk.anim_counter + 1
         end
+        if btn(1) then
+            bonk.pos.x = bonk.pos.x + bonk.speed
+            bonk.flip = false
+            p_moved = true
+            bonk.anim_counter = bonk.anim_counter + 1
+        end
+        if btn(2) then
+            bonk.pos.y = bonk.pos.y - bonk.speed
+            p_moved = true
+            bonk.anim_counter = bonk.anim_counter + 1
+        end
+        if btn(3) then
+            bonk.pos.y = bonk.pos.y + bonk.speed
+            p_moved = true
+            bonk.anim_counter = bonk.anim_counter + 1
+        end
+        if p_moved then
+            if bonk.anim_counter >= 5 then
+                bonk_animation()
+                bonk.anim_counter = 0
+            end
+        end
+
+        -- respawning from other side {#c81}
+            if bonk.pos.x < -4 then bonk.pos.x = 124
+            elseif bonk.pos.x > 124 then bonk.pos.x = -4
+            elseif bonk.pos.y < 6 then bonk.pos.y = 124
+            elseif bonk.pos.y > 124 then bonk.pos.y = 6
+            end
+    
+    else
+        p_moved = false
+        if btn(0) then 
+            super_bonk.pos.x = super_bonk.pos.x - super_bonk.speed
+            super_bonk.flip = true
+            p_moved = true
+            super_bonk.anim_counter = super_bonk.anim_counter + 1
+        end
+        if btn(1) then
+            super_bonk.pos.x = super_bonk.pos.x + super_bonk.speed
+            super_bonk.flip = false
+            p_moved = true
+            super_bonk.anim_counter = super_bonk.anim_counter + 1
+        end
+        if btn(2) then
+            super_bonk.pos.y = super_bonk.pos.y - super_bonk.speed
+            p_moved = true
+            super_bonk.anim_counter = super_bonk.anim_counter + 1
+        end
+        if btn(3) then
+            super_bonk.pos.y = super_bonk.pos.y + super_bonk.speed
+            p_moved = true
+            super_bonk.anim_counter = super_bonk.anim_counter + 1
+        end
+        if p_moved then
+            if super_bonk.anim_counter >= 8 then
+                super_bonk_animation()
+                super_bonk.anim_counter = 0
+            end
+        end
+
+        -- respawning from other side {#c81}
+            if super_bonk.pos.x < -4 then super_bonk.pos.x = 124
+            elseif super_bonk.pos.x > 124 then super_bonk.pos.x = -4
+            elseif super_bonk.pos.y < 6 then super_bonk.pos.y = 124
+            elseif super_bonk.pos.y > 124 then super_bonk.pos.y = 6
+            end
+    
+    end
 end
 
 -- Bonk change frame function {#c81,6}
@@ -151,6 +277,29 @@ function bonk_animation()
         bonk.currentFrame = 0
     end
 end
+
+-- Super Bonk change frame function {#c81,6}
+function super_bonk_animation()
+
+    -- Check if it's time to update the frame
+    if super_bonk.anim_counter > super_bonk.anim_speed then
+        super_bonk.anim_counter = 0
+
+        -- Cycle through the leg and head frames
+        super_bonk.current_legs_frame = super_bonk.current_legs_frame + 1
+        super_bonk.current_head_frame = super_bonk.current_head_frame + 1
+
+        -- Reset to the first frame if it exceeds the number of frames
+        if super_bonk.current_legs_frame > #super_bonk.sprites.legs then
+            super_bonk.current_legs_frame = 1
+        end
+
+        if super_bonk.current_head_frame > #super_bonk.sprites.head then
+            super_bonk.current_head_frame = 1
+        end
+    end
+end
+
 
 -->8
 -- thief functions
@@ -310,6 +459,21 @@ function draw_bones()
     end
 end
 
+function draw_super_bone()
+    if super_bone.spawned == true and super_bone.collected == false then
+        if super_bone.currentFrame == 1 then
+            spr(40, super_bone.pos.x, super_bone.pos.y)
+            spr(41, super_bone.pos.x + 8, super_bone.pos.y)
+        elseif super_bone.currentFrame == 2 then
+            spr(56, super_bone.pos.x, super_bone.pos.y)
+            spr(57, super_bone.pos.x + 8, super_bone.pos.y)
+        end
+    elseif super_bone.spawned == true and super_bone.collected == true then
+        --empty condition, cause nothing should happen
+    end
+
+end
+
 -- Update bone animation {#fff}
 function bone_animation()
     for i = 1, #bones do
@@ -322,6 +486,22 @@ function bone_animation()
     end
 end
 
+
+-- Update super_bone animation {#fff}
+function super_bone_animation()
+        super_bone.anim_counter = super_bone.anim_counter + 1
+        if super_bone.anim_counter % super_bone.anim_speed == 0 then
+            super_bone.currentFrame = 3 - super_bone.currentFrame -- Toggle between 1 and 2 frames
+        end
+end
+
+function spawn_super_bone()
+    if stolen_bones == 10 then
+        super_bone.pos.x = 60
+        super_bone.pos.y = 62
+        super_bone.spawned = true
+    end
+end
 
 -->8
 -- poop
@@ -436,8 +616,6 @@ function collision_bonk_thief1()
     end
 end
 
-
-
 function collision_bonk_thief2()
     if checkcollision(bonk, thief2) then
             sfx(03)
@@ -488,6 +666,20 @@ function collision_bonk_bone()
     end
 end
 
+function collision_bonk_super_bone()
+    if checkcollision(bonk, super_bone) then
+        sfx(04)
+        super_bone.pos.x = 140
+        super_bone.pos.y = 140
+        super_bonk_active = true
+        super_bonk.pos.x = bonk.pos.x
+        super_bonk.pos.y = bonk.pos.y
+        super_bone.collected = true
+        bonk.pos.x = 150
+        bonk.pos.y = 150
+    end
+end
+
 -- check collision between thieves and poop
 -- statt -1 könnte es ein random-wert sein, von -0,8 bis 1,2
 function collision_thief1_poop()
@@ -517,6 +709,7 @@ function collision_thief1_bone()
             if bones[i] and bones[i].active and checkcollision(thief1, bones[i]) then
                 sfx(02)
                 deli(bones, i)
+                stolen_bones = stolen_bones + 1
             end
         end
     end
@@ -528,6 +721,7 @@ function collision_thief2_bone()
             if bones[i] and bones[i].active and checkcollision(thief2, bones[i]) then
                 sfx(02)
                 deli(bones, i)
+                stolen_bones = stolen_bones + 1
             end
         end
     end
@@ -634,6 +828,8 @@ function _update()
             thief2_animation()
             
             collision_bonk_bone()
+            collision_bonk_super_bone()
+
             collision_bonk_thief1()
             collision_bonk_thief2()
             collision_thief1_poop()
@@ -646,6 +842,9 @@ function _update()
 
             spawn_new_bone()
             bone_animation()
+
+            spawn_super_bone()
+            super_bone_animation()
 
             poop_change()
             emergency_poop_jump()
@@ -670,9 +869,14 @@ function _draw()
     poop_announce()
 
     draw_bones()
-    if show_bonk == true then
-        drawBonk()
+    draw_super_bone()
+    
+    if super_bonk_active == true then
+        draw_super_bonk()
+    elseif show_bonk == true then
+        draw_bonk()
     end
+    
     -- I'm calling this funciton here again to increase flashing speed
     invincibility_flash()
 
