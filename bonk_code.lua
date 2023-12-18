@@ -1,7 +1,10 @@
 function _init()
-    score = 0
+    score = 20
+    life = 1
+    time_left = 91
+    stolen_bones = 0
 
-    life = 5
+
     invincible = false
     invincibility_timer = 20
     invincibility_flash_timer = 1
@@ -30,13 +33,13 @@ function _init()
 
     elapsed_bone_time = 0
     elapsed_poop_time = 0
-    time_left = 62
+
 
 
 
     poop_announcement = 0
 
-    stolen_bones = 10
+
 
     super_bonk_active = false
 
@@ -610,7 +613,7 @@ end
 
 function spawn_super_bone()
     if super_bone.spawned == false then
-        if stolen_bones == 10 then
+        if stolen_bones == 7 then
             super_bone.pos.x = 60
             super_bone.pos.y = 62
             super_bone.spawned = true
@@ -1177,7 +1180,7 @@ function end_game()
         print("score: " ..score,46,60,7)
         spr(16,58,70)
 
-        if score > 20 and score_sound_played == false then
+        if score >= 20 and score_sound_played == false then
             sfx(7)
             score_sound_played = true
         elseif score < 20 and score_sound_played == false then
