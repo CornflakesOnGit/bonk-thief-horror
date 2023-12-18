@@ -1,6 +1,6 @@
 function _init()
     score = 20
-    life = 1
+    life = 5
     time_left = 91
     stolen_bones = 0
 
