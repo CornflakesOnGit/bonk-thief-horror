@@ -22,6 +22,11 @@ function _init()
     square_counter = 0
     bonking_in_progress = false
     death_state = 0
+    bonk_sfx_1 = false
+    bonk_sfx_2 = false
+    bonk_sfx_3 = false
+    bonk_sfx_4 = false
+    bonk_sfx_5 = false
 
     elapsed_bone_time = 0
     elapsed_poop_time = 0
@@ -778,10 +783,7 @@ function collision_bonk_super_bone()
                 sfx(13)
                 transformation_sound_played = true
             end
-        
-        bonk_onscreen = false
-        bonk.pos.x = -20
-        bonk.pos.y = -20
+
     end
 end
 
@@ -907,64 +909,119 @@ function death_states_thief1()
     if death_state == 1 then
         spr(7,64,64)
         spr(23,64,72)
+        bonk_sound()
+        end
 
-    end
 
     if death_state == 2 then
+
         spr(8,64,64)
         spr(24,64,72)
+        bonk_sound()
+        end
 
-    end
 
     if death_state == 3 then
         spr(9,64,64)
         spr(25,64,72)
+        bonk_sound()
+        end
 
-    end
 
     if death_state == 4 then
         spr(26,64,72)
+        bonk_sound()
+        end
 
-    end
 
     if death_state == 5 then
         spr(27,64,72)
-
-    end
-
+        bonk_sound()
+        end
 end
 
 function death_states_thief2()
+
     if death_state == 1 then
         spr(7,64,64)
         spr(23,64,72)
-
-    end
+        bonk_sound()
+        end
 
     if death_state == 2 then
         spr(8,64,64)
         spr(24,64,72)
-
-    end
+        bonk_sound()
+        end
 
     if death_state == 3 then
         spr(9,64,64)
         spr(25,64,72)
-
-    end
+        bonk_sound()
+        end
 
     if death_state == 4 then
-        spr(26,64,72)
 
-    end
+        spr(26,64,72)
+        bonk_sound()
+        end
 
     if death_state == 5 then
         spr(27,64,72)
+        bonk_sound()
+        end
 
-    end
 end
 
+function bonk_sound()
 
+    function bonk_sound_1()
+        if bonk_sfx_1 == false then
+            sfx(15)
+            bonk_sfx_1 = true
+        end
+    end
+
+    function bonk_sound_2()
+        if bonk_sfx_2 == false then
+            sfx(15)
+            bonk_sfx_2 = true
+        end
+    end    
+    
+    function bonk_sound_3()
+        if bonk_sfx_3 == false then
+            sfx(15)
+            bonk_sfx_3 = true
+        end
+    end    
+    
+    function bonk_sound_4()
+        if bonk_sfx_4 == false then
+            sfx(15)
+            bonk_sfx_4 = true
+        end
+    end
+    
+    function bonk_sound_5()
+        if bonk_sfx_5 == false then
+            sfx(15)
+            bonk_sfx_5 = true
+        end
+    end
+
+    if death_state == 1 then
+        bonk_sound_1()
+    elseif death_state == 2 then
+        bonk_sound_2()
+    elseif death_state == 3 then
+        bonk_sound_3()
+    elseif death_state == 4 then
+        bonk_sound_4()
+    elseif death_state == 5 then
+        bonk_sound_5()
+    end
+end
 
 -->8
 -- Timer functions
@@ -1019,8 +1076,11 @@ function hud()
     spr(36,119,0)
 
 
+    print("thief2 x" ..thief1.pos.x, 70,20,0)
+    print("thief2 y" ..thief1.pos.y, 70,30,0)
+
     print("super_bone" ..super_bone.pos.x, 70,50,0)
-    print("super_bone" ..super_bone.pos.x, 70,60,0)
+    print("super_bone" ..super_bone.pos.y, 70,60,0)
 
     print("bonk" ..bonk.pos.x, 70,80,0)
     print("bonk" ..bonk.pos.y, 70,90,0)
@@ -1053,6 +1113,8 @@ function transform_bonk_animation()
             draw_new_form = false
             transformation_animation_counter = 0
         end
+        bonk_onscreen = false
+
     end
 end
 
@@ -1063,6 +1125,8 @@ function end_transformation_process()
 
         if transformation_end_counter > 73 then
             transformation_in_progress = false
+            bonk.pos.x = -20
+            bonk.pos.y = -20
 
         end
     end
@@ -1140,6 +1204,8 @@ function _update()
             
             if not transformation_in_progress then
                     if not bonking_in_progress then
+
+                            
 
                             bone_timer()
                             poop_timer()
@@ -1225,7 +1291,7 @@ function _draw()
         else
             draw_super_bonk()
         end
-    else
+    elseif show_bonk == true then
             draw_bonk()
     end
     
