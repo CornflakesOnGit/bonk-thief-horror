@@ -1,6 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
+--[bonk's thief horror]
+--by [cornflakes aka daniel]
 
 function _init()
     score = 0
