@@ -30,7 +30,7 @@ function _init()
 
     elapsed_bone_time = 0
     elapsed_poop_time = 0
-    time_left = 91
+    time_left = 62
 
 
 
@@ -156,13 +156,13 @@ super_bone = {
 }
 
 poop1 = {
-    pos = {x = 40, y = flr(rnd(91) + 20)}, -- Initial position of poop
+    pos = {x = 40, y = flr(rnd(91)) + 20}, -- Initial position of poop
     width = 8,
     height = 8,
 }
 
 poop2 = {
-    pos = {x = 85, y = flr(rnd(91) + 20)}, -- Initial position of poop
+    pos = {x = 85, y = flr(rnd(91)) + 20}, -- Initial position of poop
     width = 8,
     height = 8,
 }
@@ -295,8 +295,8 @@ function bonk_movement()
 
             if super_bonk.pos.x < -4 then super_bonk.pos.x = 124
             elseif super_bonk.pos.x > 124 then super_bonk.pos.x = -4
-            elseif super_bonk.pos.y < 6 then super_bonk.pos.y = 124
-            elseif super_bonk.pos.y > 124 then super_bonk.pos.y = 6
+            elseif super_bonk.pos.y < -24 then super_bonk.pos.y = 124
+            elseif super_bonk.pos.y > 128 then super_bonk.pos.y = 6
             end
     
     end
@@ -465,11 +465,22 @@ function draw_thief1()
 end
 
 function update_thief_face1()
+    
     if super_bonk_active == true then
-        thief1.sprites = {
+    
+        if thief1.death_sentence == true then 
+            
+            thief1.sprites = {
+                {13, 21}, -- First animation frame
+                {13, 22} -- Second animation frame
+            }
+
+        else thief1.sprites = {
             {11, 21}, -- First animation frame
             {12, 22} -- Second animation frame
         }
+
+        end
     
     else thief1.sprites = {
         {5, 21}, -- First animation frame
@@ -477,23 +488,34 @@ function update_thief_face1()
     }
 
     end
+
 end
 
 function update_thief_face2()
+    
     if super_bonk_active == true then
-        thief2.sprites = {
+
+        if thief2.death_sentence == true then 
+            
+            thief2.sprites = {
+                {13, 21}, -- First animation frame
+                {13, 22} -- Second animation frame
+            }
+
+        else thief2.sprites = {
             {11, 21}, -- First animation frame
             {12, 22} -- Second animation frame
         }
+
+        end
     
-    else     thief2.sprites = {
+    else thief2.sprites = {
         {5, 21}, -- First animation frame
         {6, 22} -- Second animation frame
     }
 
     end
 end
-
 
 -- Function for drawing thief2 {#c0c}
 function draw_thief2()
@@ -520,7 +542,7 @@ function spawnBone()
     if #bones < bones.max then
         -- Spawn a new bone at a random location and set it to active = true
         bones[#bones + 1] = {
-            pos = {x = rnd(120), y = rnd(110)}, -- random spawn position
+            pos = {x = rnd(120), y = rnd(110) + 6}, -- random spawn position
             --x = rnd(120),
             --y = rnd(120),
             width = 8,
@@ -600,13 +622,6 @@ end
 -- poop
 
 function draw_poop()
-    if poop2.pos.x == poop1.pos.x and poop2.pos.y == poop1.pos.y then
-        poop2.pos.x = flr(rnd(60) + 20)
-        poop2.pos.y = flr(rnd(60) + 20)
-        -- Update previous poop positions
-        prev_poop1_pos = {x = poop1.pos.x, y = poop1.pos.y}
-        prev_poop2_pos = {x = poop2.pos.x, y = poop2.pos.y}
-    end
     spr(4, poop1.pos.x, poop1.pos.y)
     spr(4, poop2.pos.x, poop2.pos.y)
 end
@@ -618,12 +633,12 @@ function poop_change()
         --poop2.pos = {x = 85, y = rnd((60 + 40))}
         poop_announcement = 1
     elseif time_left < 60 and poop_announcement == 1 then
-        poop1.pos = {x = 40, y = rnd((91) + 20)}
-        poop2.pos = {x = 85, y = rnd((91) + 20)}
+        poop1.pos = {x = 40, y = rnd(91) + 20}
+        poop2.pos = {x = 85, y = rnd(91) + 20}
         poop_announcement = 2
     elseif time_left < 30 and poop_announcement == 2 then
-        poop1.pos = {x = 40, y = rnd((91) + 20)}
-        poop2.pos = {x = 85, y = rnd((91) + 20)}
+        poop1.pos = {x = 40, y = rnd(91) + 20}
+        poop2.pos = {x = 85, y = rnd(91) + 20}
         poop_announcement = 3
     end
 end
@@ -910,6 +925,7 @@ function death_states_thief1()
         spr(7,64,64)
         spr(23,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 17}
         end
 
 
@@ -918,6 +934,7 @@ function death_states_thief1()
         spr(8,64,64)
         spr(24,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 20}
         end
 
 
@@ -925,18 +942,21 @@ function death_states_thief1()
         spr(9,64,64)
         spr(25,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 17}
         end
 
 
     if death_state == 4 then
         spr(26,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 20}
         end
 
 
     if death_state == 5 then
         spr(27,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 17}
         end
 end
 
@@ -946,29 +966,34 @@ function death_states_thief2()
         spr(7,64,64)
         spr(23,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 17}
         end
 
     if death_state == 2 then
         spr(8,64,64)
         spr(24,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 20}
         end
 
     if death_state == 3 then
         spr(9,64,64)
         spr(25,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 17}
         end
 
     if death_state == 4 then
 
         spr(26,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 20}
         end
 
     if death_state == 5 then
         spr(27,64,72)
         bonk_sound()
+        super_bonk.sprites.club = {id = 17}
         end
 
 end
@@ -1076,17 +1101,17 @@ function hud()
     spr(36,119,0)
 
 
-    print("thief2 x" ..thief1.pos.x, 70,20,0)
-    print("thief2 y" ..thief1.pos.y, 70,30,0)
+    --print("thief2 x" ..thief1.pos.x, 70,20,0)
+    --print("thief2 y" ..thief1.pos.y, 70,30,0)
 
-    print("super_bone" ..super_bone.pos.x, 70,50,0)
-    print("super_bone" ..super_bone.pos.y, 70,60,0)
+    --print("super_bone" ..super_bone.pos.x, 70,50,0)
+    --print("super_bone" ..super_bone.pos.y, 70,60,0)
 
-    print("bonk" ..bonk.pos.x, 70,80,0)
-    print("bonk" ..bonk.pos.y, 70,90,0)
+    --print("bonk" ..bonk.pos.x, 70,80,0)
+    --print("bonk" ..bonk.pos.y, 70,90,0)
 
-    print("super_bonk" ..super_bonk.pos.x, 70,100,0)
-    print("super_bonk" ..super_bonk.pos.y, 70,110,0)
+    --print("super_bonk" ..super_bonk.pos.x, 70,100,0)
+    --print("super_bonk" ..super_bonk.pos.y, 70,110,0)
     --print("death state: " ..death_state, 15,20,0)
     --print("cooldown: " ..input_cooldown_timer, 50,30,0)
     --print(btnp(5))
@@ -1164,6 +1189,13 @@ function end_game()
     end
 end
 
+
+
+
+
+
+
+
 function negative_life_debug()
     if life == -1 then
         life = 0
@@ -1205,7 +1237,8 @@ function _update()
             if not transformation_in_progress then
                     if not bonking_in_progress then
 
-                            
+
+
 
                             bone_timer()
                             poop_timer()
@@ -1267,15 +1300,31 @@ end
 
 function _draw()
     cls(0)
-    map(0, 0, 0, 0, 16, 16)
-    
+
+    if super_bonk_active == false then
+        map(0, 0, 0, 0, 16, 16)
+
+    else
+        map(16, 0)
+    end
+
     rectfill(0, 0, 127, 5, 0)  -- Draws a black rectangle at the top of the screen (128x4)
     draw_poop()
+
+
+
     hud()
 
     poop_announce()
 
     draw_bones()
+
+    if bonking_in_progress == true then
+        rectfill(40, 50, 80, 90, 0)
+        rectfill(23, 95, 100, 110, 0)
+        print("press x to bonk", 33, 100, 7)
+    end
+
     draw_super_bone()
 
     death_states_thief1()
@@ -1307,6 +1356,7 @@ function _draw()
         draw_thief2()
     end
 
+    
     end_game()
 
 end
